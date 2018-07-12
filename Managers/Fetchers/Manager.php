@@ -187,28 +187,4 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 		}
 		return false;
 	}
-	
-	/**
-	 * Updates fetcher signature.
-	 * @param int $iFetcherId Identifier of fetcher to update.
-	 * @param boolean $bUseSignature Indicates if signature should be used in messages.
-	 * @param string $sSignature Signature value.
-	 * @return boolean
-	 */
-	public function updateFetcherSignature($iFetcherId, $bUseSignature, $sSignature)
-	{
-		try
-		{
-			$oFetcher = $this->getFetcher($iFetcherId);
-			$oFetcher->UseSignature = $bUseSignature;
-			$oFetcher->Signature = $sSignature;
-			return $this->oEavManager->saveEntity($oFetcher);
-		}
-		catch (\Aurora\System\Exceptions\BaseException $oException)
-		{
-			$this->setLastException($oException);
-		}
-
-		return false;
-	}
 }
