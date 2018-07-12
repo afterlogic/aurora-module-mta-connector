@@ -53,7 +53,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 		
-		$oFetcher = new \Aurora\Modules\Mailsuite\Classes\Fetcher($this->GetName());
+		$oFetcher = new \Aurora\Modules\MailSuite\Classes\Fetcher($this->GetName());
 		$oFetcher->IdUser = $UserId;
 		$oFetcher->IdAccount = $AccountID;
 		
