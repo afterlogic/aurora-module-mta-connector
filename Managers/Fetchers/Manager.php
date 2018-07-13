@@ -171,19 +171,23 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)
 		{
-			$this->setLastException($oException);
+			throw $oException;
 		}
 		catch (\MailSo\Net\Exceptions\ConnectionException $oException)
 		{
-			$this->setLastException(new \Aurora\System\Exceptions\BaseException(\Aurora\System\Exceptions\ErrorCodes::Fetcher_ConnectToMailServerFailed, $oException));
+			throw new \Aurora\Modules\Mail\Exceptions\Exception(\Aurora\Modules\Mail\Enums\ErrorCodes::CannotConnectToMailServer, $oException, $oException->getMessage());
+		}
+		catch (\MailSo\Pop3\Exceptions\Exception $oException)
+		{
+			throw new \Aurora\Modules\Mail\Exceptions\Exception(\Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect, $oException, $oException->getMessage());
 		}
 		catch (\MailSo\Pop3\Exceptions\LoginBadCredentialsException $oException)
 		{
-			$this->setLastException(new \Aurora\System\Exceptions\BaseException(\Aurora\System\Exceptions\ErrorCodes::Fetcher_AuthError, $oException));
+			throw new \Aurora\Modules\Mail\Exceptions\Exception(\Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect, $oException, $oException->getMessage());
 		}
 		catch (Exception $oException)
 		{
-			$this->setLastException(new \Aurora\System\Exceptions\BaseException(\Aurora\System\Exceptions\ErrorCodes::Fetcher_AuthError, $oException));
+			throw new \Aurora\Modules\Mail\Exceptions\Exception(\Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect, $oException, $oException->getMessage());
 		}
 		return false;
 	}
