@@ -85,7 +85,7 @@ class CronFetcher
 			$sCommand .= ' --received-header=off';
 //			$sCommand .= ' --half-quiet';
 			$sCommand .= ' -d'; // debug mode
-			$sCommand .= ' --passwordeval="' . $oFetcher->IncomingPassword . '"';
+			$sCommand .= ' --passwordeval="echo \'' . $oFetcher->IncomingPassword . '\'"';
 			
 			echo '<pre>' . $sCommand . '</pre>';
 			//execute a fetch command as user afterlogic
