@@ -85,13 +85,13 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 	 * @param int $iUserId User identifier.
 	 * @return array|bool
 	 */
-	public function getFetchers($iUserId)
+	public function getFetchers($iUserId = null)
 	{
 		try
 		{
 			$iOffset = 0;
 			$iLimit = 0;
-			$aFilters = ['IdUser' => [$iUserId, '=']];
+			$aFilters = $iUserId === null ? [] : ['IdUser' => [$iUserId, '=']];
 
 			return $this->oEavManager->getEntities(
 				$this->getModule()->getNamespace() . '\Classes\Fetcher',
