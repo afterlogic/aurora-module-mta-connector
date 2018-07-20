@@ -13,16 +13,8 @@ class CronFetcher
 	{
 		$oMailSuiteModule =  \Aurora\System\Api::GetModule('MailSuite');
 		$this->oApiFetchersManager = $oMailSuiteModule->oApiFetchersManager;
-//		$this->aUsers = array();
-//		$this->aCalendars = array();
-//		$this->sCurRunFilePath = \Aurora\System\Api::DataPath().'/reminder-run';
-//
+		
 		$oMailModule =  \Aurora\System\Api::GetModule('Mail');
-//		$this->oCalendarModule = \Aurora\System\Api::GetModule('Calendar');
-//
-//		$this->oApiUsersManager = \Aurora\System\Api::GetModule('Core')->oApiUsersManager ;
-//		$this->oApiCalendarManager = $this->oCalendarModule->oApiCalendarManager;
-//		$this->oApiMailManager = $oMailModule->oApiMailManager;
 		$this->oApiAccountsManager = $oMailModule->oApiAccountsManager;
 	}
 	
@@ -34,17 +26,13 @@ class CronFetcher
 	public function Execute()
 	{
 		$iTimer = microtime(true);
-		$this->log('---------- Start fetcher cron script');
+		$this->log('Start fetcher cron script');
 
+		$sBasedir = "/opt/afterlogic";
 		$aFetchers = $this->oApiFetchersManager->getFetchers();
-		foreach ($aFetchers as $key => $oFetcher) {
-			// if interval is ended and fetcher is not locked:
-			// lock
-			
-			// fetch
-			
-			$sBasedir = "/opt/afterlogic";
-			
+		foreach ($aFetchers as $key => $oFetcher)
+		{
+			$bDoFetch = true;
 			$oAccount = $this->oApiAccountsManager->getAccountById($oFetcher->IdAccount);
 			preg_match('/(.+)@(.+)$/', $oAccount->Email, $aMatches);
 			$sLogin = "";
@@ -56,48 +44,74 @@ class CronFetcher
 			}
 			$sMaildir = $sBasedir . '/data/' . $sDomain . '/' . $sLogin;
 			
-			$sTls = 'off';
-			$sStartTls = 'off';
-			switch ($oFetcher->IncomingMailSecurity)
+			$this->log('Fetch mail from ' . $oFetcher->IncomingServer . ':' . $oFetcher->IncomingPort . '/' . $oFetcher->IncomingLogin . ' - ' . $sDomain . '/' . $sLogin);
+			
+			if ($oFetcher->IsLocked)
 			{
-				case \MailSo\Net\Enumerations\ConnectionSecurityType::SSL:
-					$sTls = 'on';
-					break;
-				case \MailSo\Net\Enumerations\ConnectionSecurityType::STARTTLS:
-					$sTls = 'on';
-					$sStartTls = 'on';
-					break;
+				$iTimeInterval = microtime(true) - $oFetcher->CheckLastTime;
+				if ($oFetcher->CheckInterval > 0 && $iTimeInterval > $oFetcher->CheckInterval)
+				{
+					$this->log('Previous lock timeout expired, acquiring the lock...');
+					$oFetcher->CheckLastTime = microtime(true);
+				}
+				else
+				{
+					$this->log('The fetching process for a current mailbox is already running, exiting...');
+					$bDoFetch = false;
+				}
 			}
-			
-//			$sCommand = 'su -s /bin/bash -m -c "' . $sBasedir . '/bin/mpop';
-			$sCommand = $sBasedir . '/bin/mpop';
-			$sCommand .= ' --host="' . $oFetcher->IncomingServer . '"';
-			$sCommand .= ' --port=' . $oFetcher->IncomingPort;
-			$sCommand .= ' --user="' . $oFetcher->IncomingLogin . '"';
-			$sCommand .= ' --auth=user';
-			$sCommand .= ' --uidls-file="' . $sMaildir . '/fetcher-id' . $oFetcher->EntityId . '-uidls"';
-			$sCommand .= ' --delivery=mda,"' . $sBasedir . '/scripts/dovecot-lda-wrapper.sh -d ' . $oAccount->Email . ' -m \'' . $oFetcher->Folder . '\'"';
-			$sCommand .= ' --keep=' . ($oFetcher->LeaveMessagesOnServer ? 'on' : 'off');
-			$sCommand .= ' --only-new=on';
-			$sCommand .= ' --tls=' . $sTls;
-			$sCommand .= ' --tls-certcheck=off';
-			$sCommand .= ' --tls-starttls=' . $sStartTls;
-			$sCommand .= ' --received-header=off';
-//			$sCommand .= ' --half-quiet';
-			$sCommand .= ' -d'; // debug mode
-			$sCommand .= ' --passwordeval="echo \'' . $oFetcher->IncomingPassword . '\'"';
-			
-			echo '<pre>' . $sCommand . '</pre>';
-			//execute a fetch command as user afterlogic
-			$output = [];
-			$return_var = 0;
-			$sOutput = exec($sCommand, $output, $return_var);
-			var_dump($sOutput);
-			var_dump($output);
-			var_dump($return_var);
-			
-			// unlock
-			
+			else
+			{
+				$this->log('Mailbox is free, locking it...');
+				$oFetcher->IsLocked = true;
+				$oFetcher->CheckLastTime = microtime(true);
+			}
+	
+			if ($bDoFetch)
+			{
+				$this->oApiFetchersManager->updateFetcher($oFetcher, false);
+
+				$sTls = 'off';
+				$sStartTls = 'off';
+				switch ($oFetcher->IncomingMailSecurity)
+				{
+					case \MailSo\Net\Enumerations\ConnectionSecurityType::SSL:
+						$sTls = 'on';
+						break;
+					case \MailSo\Net\Enumerations\ConnectionSecurityType::STARTTLS:
+						$sTls = 'on';
+						$sStartTls = 'on';
+						break;
+				}
+
+				$sCommand = $sBasedir . '/bin/mpop';
+				$sCommand .= ' --host="' . $oFetcher->IncomingServer . '"';
+				$sCommand .= ' --port=' . $oFetcher->IncomingPort;
+				$sCommand .= ' --user="' . $oFetcher->IncomingLogin . '"';
+				$sCommand .= ' --auth=user';
+				$sCommand .= ' --uidls-file="' . $sMaildir . '/fetcher-id' . $oFetcher->EntityId . '-uidls"';
+				$sCommand .= ' --delivery=mda,"' . $sBasedir . '/scripts/dovecot-lda-wrapper.sh -d ' . $oAccount->Email . ' -m \'' . $oFetcher->Folder . '\'"';
+				$sCommand .= ' --keep=' . ($oFetcher->LeaveMessagesOnServer ? 'on' : 'off');
+				$sCommand .= ' --only-new=on';
+				$sCommand .= ' --tls=' . $sTls;
+				$sCommand .= ' --tls-certcheck=off';
+				$sCommand .= ' --tls-starttls=' . $sStartTls;
+				$sCommand .= ' --received-header=off';
+				$sCommand .= ' --half-quiet';
+//				$sCommand .= ' -d'; // debug mode
+				$sCommand .= ' --passwordeval="echo \'' . $oFetcher->IncomingPassword . '\'"';
+
+				$this->log('Execute MPOP...');
+				$aOutput = [];
+				$iResult = 0;
+				$sOutput = exec($sCommand, $aOutput, $iResult);
+				$this->log('Result: ' . $sOutput . '/' . $iResult);
+				$this->log('Result serialized: ' . json_encode($aOutput));
+				
+				$this->log('Unlock mailbox...');
+				$oFetcher->IsLocked = false;
+				$this->oApiFetchersManager->updateFetcher($oFetcher, false);
+			}
 		}
 
 		$this->log('Cron execution time: '.(microtime(true) - $iTimer).' sec.');
@@ -105,10 +119,8 @@ class CronFetcher
 	
 	private function log($sMessage)
 	{
-		echo $sMessage . '<br />';
-//		\Aurora\System\Api::Log($sMessage, \Aurora\System\Enums\LogLevel::Full, 'cron-fetcher-');
+		\Aurora\System\Api::Log($sMessage, \Aurora\System\Enums\LogLevel::Full, 'cron-fetcher-');
 	}
 }
-
 
 CronFetcher::NewInstance()->Execute();
