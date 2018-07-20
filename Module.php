@@ -284,6 +284,21 @@ class Module extends \Aurora\System\Module\AbstractModule
 		return false;
 	}
 	
+	public function StartFirstPrefetch($UserId, $FetcherId)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+		
+		if ($this->getConfig('AllowFetchers', false))
+		{
+			$oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
+			$sFetchersCronFirstTimeScript = $this->getConfig('FetchersCronFirstTimeScript', '');
+			if ($oFetcher && $oFetcher->IdUser === $UserId && $oFetcher->CheckLastTime === 0 && file_exists($sFetchersCronFirstTimeScript))
+			{
+				exec($sFetchersCronFirstTimeScript);
+			}
+		}
+	}
+	
 	/**
 	 * @api {post} ?/Api/ UpdateFetcher
 	 * @apiName UpdateFetcher

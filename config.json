@@ -6,5 +6,21 @@
 	"AllowFetchers": [
 		false,
 		"bool"
+    ],
+    "FetchersCronFirstTimeScript": [
+        "",
+        "string"
+    ],
+    "FetchersCronMpopScript": [
+        "",
+        "string"
+    ],
+    "FetchersCronMpopDataFolder": [
+        "",
+        "string"
+    ],
+    "FetchersCronDeliveryScript": [
+        "",
+        "string"
 	]
 }
