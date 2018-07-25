@@ -23,6 +23,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public $oApiFetchersManager = null;
 			
+	/* 
+	 * @var $oApiAliasesManager Managers\Aliases
+	 */
+	public $oApiAliasesManager = null;
+			
 	public function init()
 	{
 		$this->subscribeEvent('AdminPanelWebclient::CreateUser::after', array($this, 'onAfterCreateUser'));
@@ -31,6 +36,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
+		$this->oApiAliasesManager = new Managers\Aliases\Manager($this);
 	}
 
 	/***** public functions might be called with web API *****/
@@ -632,6 +638,81 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * Obtains all aliases for specified user.
+	 * @param int $UserId User identifier.
+	 * @return array|boolean
+	 */
+	public function GetAliases($UserId)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		$oUser = \Aurora\System\Api::GetModuleDecorator('Core')->GetUser($UserId);
+		$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId);
+		if ($oAccount)
+		{
+			$sDomain = preg_match('/.+@(.+)$/',  $oAccount->Email, $aMatches) && $aMatches[1] ? $aMatches[1] : '';
+			$aAliases = $this->oApiAliasesManager->getAliases($oAccount->EntityId);
+			return [
+				'Domain' => $sDomain,
+				'Aliases' => $aAliases
+			];
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Creates new alias with specified name and domain.
+	 * @param int $UserId User identifier.
+	 * @param string $AliasName Alias name.
+	 * @param string $AliasDomain Alias domain.
+	 * @return boolean
+	 */
+	public function AddNewAlias($UserId, $AliasName, $AliasDomain)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		$oUser = \Aurora\System\Api::GetModuleDecorator('Core')->GetUser($UserId);
+		$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId);
+		if ($oAccount)
+		{
+			return $this->oApiAliasesManager->addAlias($oAccount->EntityId, $AliasName, $AliasDomain, $oAccount->Email);
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Deletes aliases with specified emails.
+	 * @param int $UserId User identifier
+	 * @param array $Aliases Aliases emails.
+	 * @return boolean
+	 */
+	public function DeleteAlias($UserId, $Aliases)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		$mResult = false;
+		$oUser = \Aurora\System\Api::GetModuleDecorator('Core')->GetUser($UserId);
+		$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId);
+		if ($oAccount)
+		{
+			foreach ($Aliases as $sAlias)
+			{
+				preg_match('/(.+)@(.+)$/',  $sAlias, $aMatches);
+				$AliasName = isset($aMatches[1]) ? $aMatches[1] : '';
+				$AliasDomain = isset($aMatches[2]) ? $aMatches[2] : '';
+				if ($this->oApiAliasesManager->deleteAlias($oAccount->EntityId, $AliasName, $AliasDomain))
+				{
+					$mResult = true;
+				}
+			}
+		}
+		
+		return $mResult;
 	}
 	/***** public functions might be called with web API *****/
 	
