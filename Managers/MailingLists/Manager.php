@@ -61,7 +61,11 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	 */
 	public function deleteMailingList($iListId)
 	{
-		return $this->oStorage->deleteMailingList($iListId);
+		if ($this->oStorage->deleteMailingListMembers($iListId))
+		{
+			return $this->oStorage->deleteMailingList($iListId);
+		}
+		return false;
 	}
 	
 	/**

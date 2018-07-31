@@ -54,6 +54,20 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	}
 	
 	/**
+	 * Creates SQL-query to delete mailing list members.
+	 * @param int $iListId Mailing list identifier.
+	 * @return boolean
+	 */
+	public function deleteMailingListMembers($iListId)
+	{
+		$sSql = 'DELETE FROM awm_mailinglists WHERE id_acct = %d';
+
+		return sprintf($sSql,
+			$iListId
+		);
+	}
+	
+	/**
 	 * Creates SQL-query to delete mailing list.
 	 * @param int $iListId Mailing list identifier.
 	 * @return boolean

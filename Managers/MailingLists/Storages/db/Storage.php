@@ -94,6 +94,20 @@ class Storage extends \Aurora\Modules\MailSuite\Managers\MailingLists\Storages\D
 	}
 	
 	/**
+	 * Deletes mailing list members.
+	 * @param int $iListId Mailing list identifier.
+	 * @return boolean
+	 */
+	public function deleteMailingListMembers($iListId)
+	{
+		$mResult = $this->oConnection->Execute($this->oCommandCreator->deleteMailingListMembers($iListId));
+
+		$this->throwDbExceptionIfExist();
+		
+		return $mResult;
+	}
+	
+	/**
 	 * Deletes mailing list.
 	 * @param int $iListId Mailing list identifier.
 	 * @return boolean
