@@ -28,6 +28,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public $oApiAliasesManager = null;
 			
+	/* 
+	 * @var $oApiMailingListsManager Managers\MailingLists
+	 */
+	public $oApiMailingListsManager = null;
+			
 	public function init()
 	{
 		$this->subscribeEvent('AdminPanelWebclient::CreateUser::after', array($this, 'onAfterCreateUser'));
@@ -37,6 +42,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
 		$this->oApiAliasesManager = new Managers\Aliases\Manager($this);
+		$this->oApiMailingListsManager = new Managers\MailingLists\Manager($this);
 	}
 
 	/***** public functions might be called with web API *****/
@@ -713,6 +719,101 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 		
 		return $mResult;
+	}
+	
+	/**
+	 * Creates mailing list.
+	 * @param int $TenantId Tenant identifier.
+	 * @param int $Email Email of mailing list.
+	 * @return boolean
+	 */
+	public function CreateMailingList($TenantId, $Email)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		return $this->oApiMailingListsManager->createMailingList($TenantId, $Email);
+	}
+	
+	/**
+	 * Obtains all mailing lists for specified tenant.
+	 * @param int $TenantId Tenant identifier.
+	 * @return array|boolean
+	 */
+	public function GetMailingLists($TenantId)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		$aMailingLists = $this->oApiMailingListsManager->getMailingLists($TenantId);
+		if (is_array($aMailingLists))
+		{
+			return [
+				'Count' => count($aMailingLists),
+				'Items' => $aMailingLists
+			];
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Deletes mailing lists.
+	 * @param int $IdList List of mailing list identifiers.
+	 * @return boolean
+	 */
+	public function DeleteMailingLists($IdList)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		$mResult = false;
+		foreach ($IdList as $iListId)
+		{
+			$mResult = $this->oApiMailingListsManager->deleteMailingList($iListId);
+		}
+		return $mResult;
+	}
+	
+	/**
+	 * Obtains all mailing list members.
+	 * @param int $Id Mailing list identifier.
+	 * @return array|boolean
+	 */
+	public function GetMailingListMembers($Id)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		return $this->oApiMailingListsManager->getMailingListMembers($Id);
+	}
+	
+	/**
+	 * Adds new member to mailing list.
+	 * @param int $ListId Mailing list identifier.
+	 * @param string $ListName Email of mailing list.
+	 * @return boolean
+	 */
+	public function AddMailingListMember($ListId, $ListName)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		$sListTo = $this->oApiMailingListsManager->getMailingListEmail($ListId);
+		
+		return $this->oApiMailingListsManager->addMember($ListId, $ListName, $sListTo);
+	}
+	
+	/**
+	 * Deletes member from mailing list.
+	 * @param int $ListId Mailing list identifier.
+	 * @param string $Members Emails of members.
+	 * @return boolean
+	 */
+	public function DeleteMailingListMembers($ListId, $Members)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		$bResult = false;
+		foreach ($Members as $sListName)
+		{
+			$bResult = $this->oApiMailingListsManager->deleteMember($ListId, $sListName);
+		}
+		return $bResult;
 	}
 	/***** public functions might be called with web API *****/
 	
