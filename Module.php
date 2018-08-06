@@ -727,10 +727,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * @param int $Email Email of mailing list.
 	 * @return boolean
 	 */
-	public function CreateMailingList($TenantId, $Email)
+	public function CreateMailingList($TenantId = 0, $Email = '')
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		
+		if ($TenantId === 0)
+		{
+			$TenantId = $this->getSingleDefaultTenantId();
+		}
 		return $this->oApiMailingListsManager->createMailingList($TenantId, $Email);
 	}
 	
@@ -739,10 +743,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * @param int $TenantId Tenant identifier.
 	 * @return array|boolean
 	 */
-	public function GetMailingLists($TenantId)
+	public function GetMailingLists($TenantId = 0)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		
+		if ($TenantId === 0)
+		{
+			$TenantId = $this->getSingleDefaultTenantId();
+		}
 		$aMailingLists = $this->oApiMailingListsManager->getMailingLists($TenantId);
 		if (is_array($aMailingLists))
 		{
@@ -838,6 +846,20 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			$aArgs['Fetcher'] = $oFetcher;
 		}
+	}
+	
+	private function getSingleDefaultTenantId()
+	{
+		$iTenantId = 0;
+		$oSettings =& \Aurora\System\Api::GetSettings();
+		
+		if (!$oSettings->GetConf('EnableMultiChannel') && !$oSettings->GetConf('EnableMultiTenant'))
+		{
+			$oCoreDecorator = \Aurora\System\Api::GetModuleDecorator('Core');
+			$iTenantId = $oCoreDecorator->GetTenantIdByName('Default');
+		}
+		
+		return $iTenantId;
 	}
 	/***** private functions *****/
 }
