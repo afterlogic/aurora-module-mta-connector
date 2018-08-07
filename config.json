@@ -7,10 +7,6 @@
 		false,
 		"bool"
     ],
-    "FetchersCronFirstTimeScript": [
-        "",
-        "string"
-    ],
     "FetchersCronMpopScript": [
         "",
         "string"
@@ -22,5 +18,9 @@
     "FetchersCronDeliveryScript": [
         "",
         "string"
-	]
+	],
+    "FetchersIntervalMinutes": [
+        20,
+        "int"
+    ]
 }
