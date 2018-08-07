@@ -897,7 +897,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$oUser = \Aurora\System\Api::getUserById($mResult);
 		if ($sEmail && $sPassword && $oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
-			$this->oApiMainManager->createAccount($sEmail, $sPassword, $sQuota);
+			$this->oApiMainManager->createAccount($sEmail, $sPassword, /*DomainId*/1, $sQuota);
 			\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
 		}
 	}
