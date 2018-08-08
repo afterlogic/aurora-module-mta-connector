@@ -28,6 +28,11 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		return $this->oStorage->createAccount($sEmail, self::EncodePassword($sPassword), $iDomainId, $iQuota);
 	}
 
+	public function deleteAccount($sEmail)
+	{
+		return $this->oStorage->deleteAccount($sEmail);
+	}
+
 	public static function DecodePassword($sPassword)
 	{
 		$sResult = '';

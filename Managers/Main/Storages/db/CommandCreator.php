@@ -84,6 +84,26 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	}
 
 	/**
+	 * TODO remove this method
+	 * @param \Aurora\Modules\Core\Classes\User $oUser
+	 *
+	 * @return string
+	 */
+	public function deleteAccountByEmail($sEmail)
+	{
+		if (!empty($sEmail))
+		{
+			$sSql = 'DELETE FROM awm_accounts WHERE %s = %s';
+			return sprintf($sSql,
+				$this->escapeColumn('mail_inc_login'),
+				$this->escapeString($sEmail)
+			);
+		}
+
+		return '';
+	}
+
+	/**
 	 * TODO remove
 	 * @param \Aurora\Modules\Core\Classes\User $oUser
 	 *

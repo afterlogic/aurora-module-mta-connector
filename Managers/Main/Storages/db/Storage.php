@@ -76,6 +76,13 @@ class Storage extends \Aurora\Modules\MailSuite\Managers\Main\Storages\DefaultSt
 		return $bResult;
 	}
 
+	public function deleteAccount($sEmail)
+	{
+		$bResult = $this->oConnection->Execute($this->oCommandCreator->deleteAccountByEmail($sEmail));
+		$this->throwDbExceptionIfExist();
+		return $bResult;
+	}
+
 	/**
 	 * TODO use Core modue API and remove this this method
 	 * @param int $iIdTenant

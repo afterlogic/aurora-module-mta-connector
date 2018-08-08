@@ -43,6 +43,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('AdminPanelWebclient::CreateUser::after', array($this, 'onAfterCreateUser'));
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
+		$this->subscribeEvent('Core::AfterDeleteUser', array($this, 'onAfterDeleteUser'));
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -910,7 +911,36 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$aArgs['Fetcher'] = $oFetcher;
 		}
 	}
-	
+
+	public function onAfterDeleteUser($aArgs, &$mResult)
+	{
+		$sUserPublicId = isset($aArgs["User"]) ? $aArgs["User"]->PublicId : null;
+		if ($sUserPublicId)
+		{
+			//remove from awm_accounts
+			$this->oApiMainManager->deleteAccount($aArgs["User"]->PublicId);
+			//remove mailbox
+			$sScript = '/opt/afterlogic/scripts/webshell-maildirdel.sh';
+			if (file_exists($sScript))
+			{
+				$sEmail = \Aurora\System\Utils::GetAccountNameFromEmail($aArgs["User"]->PublicId);
+				$sDomain = \MailSo\Base\Utils::GetDomainFromEmail($aArgs["User"]->PublicId);
+				$sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
+
+				\Aurora\System\Api::Log('deleteMailDir / exec: '.$sCmd, \Aurora\System\Enums\LogLevel::Full);
+				$sReturn = trim(shell_exec($sCmd));
+				if (!empty($sReturn))
+				{
+					\Aurora\System\Api::Log('deleteMailDir / exec result: '.$sReturn, \Aurora\System\Enums\LogLevel::Full);
+				}
+			}
+			else
+			{
+				\Aurora\System\Api::Log('deleteMailDir: '.$sScript.' does not exist', \Aurora\System\Enums\LogLevel::Full);
+			}
+		}
+	}
+
 	private function getSingleDefaultTenantId()
 	{
 		$iTenantId = 0;
