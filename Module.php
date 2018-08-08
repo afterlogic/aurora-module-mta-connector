@@ -33,6 +33,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public $oApiMailingListsManager = null;
 			
+	/* 
+	 * @var $oApiDomainsManager Managers\MailingLists
+	 */
+	public $oApiDomainsManager = null;
+			
 	public function init()
 	{
 		$this->subscribeEvent('AdminPanelWebclient::CreateUser::after', array($this, 'onAfterCreateUser'));
@@ -43,6 +48,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
 		$this->oApiAliasesManager = new Managers\Aliases\Manager($this);
 		$this->oApiMailingListsManager = new Managers\MailingLists\Manager($this);
+		$this->oApiDomainsManager = new Managers\Domains\Manager($this);
 	}
 
 	/***** public functions might be called with web API *****/
@@ -809,6 +815,76 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$bResult = $this->oApiMailingListsManager->deleteMember($ListId, $sListName);
 		}
 		return $bResult;
+	}
+	
+	/**
+	 * Creates domain.
+	 * @param int $TenantId Tenant identifier.
+	 * @param int $DomainName Domain name.
+	 * @return boolean
+	 */
+	public function CreateDomain($TenantId = 0, $DomainName = '')
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		if ($TenantId === 0)
+		{
+			$TenantId = $this->getSingleDefaultTenantId();
+		}
+		return $this->oApiDomainsManager->createDomain($TenantId, $DomainName);
+	}
+	
+	/**
+	 * Obtains all domains for specified tenant.
+	 * @param int $TenantId Tenant identifier.
+	 * @return array|boolean
+	 */
+	public function GetDomains($TenantId = 0)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		if ($TenantId === 0)
+		{
+			$TenantId = $this->getSingleDefaultTenantId();
+		}
+		$aDomains = $this->oApiDomainsManager->getDomains($TenantId);
+		if (is_array($aDomains))
+		{
+			return [
+				'Count' => count($aDomains),
+				'Items' => $aDomains
+			];
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Obtains domain.
+	 * @param int $Id Domain identifier.
+	 * @return array|boolean
+	 */
+	public function GetDomain($Id)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		
+		return $this->oApiDomainsManager->getDomain($Id);
+	}
+	
+	/**
+	 * Deletes domains.
+	 * @param int $IdList List of domain identifiers.
+	 * @return boolean
+	 */
+	public function DeleteDomains($IdList)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		$mResult = false;
+		foreach ($IdList as $iDomainId)
+		{
+			$mResult = $this->oApiDomainsManager->deleteMailingList($iDomainId);
+		}
+		return $mResult;
 	}
 	/***** public functions might be called with web API *****/
 	
