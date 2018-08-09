@@ -718,10 +718,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/**
 	 * Creates mailing list.
 	 * @param int $TenantId Tenant identifier.
-	 * @param int $Email Email of mailing list.
+	 * @param int $DomainId Domain identifier.
+	 * @param string $Email Email of mailing list.
 	 * @return boolean
 	 */
-	public function CreateMailingList($TenantId = 0, $Email = '')
+	public function CreateMailingList($TenantId = 0, $DomainId = 0, $Email = '')
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		
@@ -729,7 +730,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			$TenantId = $this->getSingleDefaultTenantId();
 		}
-		return $this->oApiMailingListsManager->createMailingList($TenantId, $Email);
+		return $this->oApiMailingListsManager->createMailingList($TenantId, $DomainId, $Email);
 	}
 	
 	/**
@@ -893,12 +894,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function onAfterCreateUser(&$aData, &$mResult)
 	{
 		$sEmail = isset($aData['PublicId']) ? $aData['PublicId'] : '';
+		$sDomainId = isset($aData['DomainId']) ? $aData['DomainId'] : '';
 		$sPassword = isset($aData['Password']) ? $aData['Password'] : '';
 		$sQuota = isset($aData['Quota']) ? $aData['Quota'] : null;
 		$oUser = \Aurora\System\Api::getUserById($mResult);
 		if ($sEmail && $sPassword && $oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
-			$this->oApiMainManager->createAccount($sEmail, $sPassword, /*DomainId*/1, $sQuota);
+			$this->oApiMainManager->createAccount($sEmail, $sPassword, $sDomainId, $sQuota);
 			\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
 		}
 	}

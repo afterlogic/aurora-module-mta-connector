@@ -15,15 +15,17 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	/**
 	 * Creates SQL-query to create mailing list.
 	 * @param int $iTenantId Tenant identifier.
-	 * @param int $sEmail Email of mailing list.
+	 * @param int $iDomainId Domain identifier.
+	 * @param string $sEmail Email of mailing list.
 	 * @return string
 	 */
-	public function createMailingList($iTenantId, $sEmail)
+	public function createMailingList($iTenantId, $iDomainId, $sEmail)
 	{
-		$sSql = 'INSERT INTO awm_accounts ( id_tenant, email, mail_inc_login, mailing_list ) VALUES ( %d, %s, %s, 1 )';
+		$sSql = 'INSERT INTO awm_accounts ( id_tenant, id_domain, email, mail_inc_login, mailing_list ) VALUES ( %d, %d, %s, %s, 1 )';
 		
 		return sprintf($sSql,
 			$iTenantId,
+			$iDomainId,
 			$this->escapeString($sEmail),
 			$this->escapeString($sEmail)
 		);

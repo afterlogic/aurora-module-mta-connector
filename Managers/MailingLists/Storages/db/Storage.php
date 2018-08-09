@@ -30,12 +30,13 @@ class Storage extends \Aurora\Modules\MailSuite\Managers\MailingLists\Storages\D
 	/**
 	 * Creates mailing list.
 	 * @param int $iTenantId Tenant identifier.
-	 * @param int $sEmail Email of mailing list.
+	 * @param int $iDomainId Domain identifier.
+	 * @param string $sEmail Email of mailing list.
 	 * @return boolean
 	 */
-	public function createMailingList($iTenantId, $sEmail)
+	public function createMailingList($iTenantId, $iDomainId, $sEmail)
 	{
-		$mResult = $this->oConnection->Execute($this->oCommandCreator->createMailingList($iTenantId, $sEmail));
+		$mResult = $this->oConnection->Execute($this->oCommandCreator->createMailingList($iTenantId, $iDomainId, $sEmail));
 
 		$this->throwDbExceptionIfExist();
 		
