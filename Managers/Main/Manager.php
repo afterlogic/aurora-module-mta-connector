@@ -23,9 +23,9 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		parent::__construct($oModule, new \Aurora\Modules\MailSuite\Managers\Main\Storages\db\Storage($this));
 	}
 
-	public function createAccount($sEmail, $sPassword, $iDomainId, $iQuota = 0)
+	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId, $iQuota = 0)
 	{
-		return $this->oStorage->createAccount($sEmail, self::EncodePassword($sPassword), $iDomainId, $iQuota);
+		return $this->oStorage->createAccount($sEmail, self::EncodePassword($sPassword), $iUserId, $iDomainId, $iQuota);
 	}
 
 	public function deleteAccount($sEmail)

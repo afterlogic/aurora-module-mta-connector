@@ -109,4 +109,32 @@ class Storage extends \Aurora\Modules\MailSuite\Managers\Domains\Storages\Defaul
 		
 		return $mResult;
 	}
+
+	/**
+	 * Obtains domain members.
+	 * @param int $iDomainId Domain identifier.
+	 * @return string|boolean
+	 */
+	public function getDomainMembers($iDomainId)
+	{
+		$mResult = false;
+		if ($this->oConnection->Execute($this->oCommandCreator->getDomainMembers($iDomainId)))
+		{
+			$mResult = [];
+			while (false !== ($oRow = $this->oConnection->GetNextRecord()))
+			{
+				if ($oRow)
+				{
+					$mResult[] = [
+						'UserId' => $oRow->id_user,
+						'Email' => $oRow->mail_inc_login
+					];
+				}
+			}
+		}
+
+		$this->throwDbExceptionIfExist();
+
+		return $mResult;
+	}
 }

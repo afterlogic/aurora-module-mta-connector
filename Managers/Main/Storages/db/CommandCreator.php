@@ -63,18 +63,20 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	 *
 	 * @return string
 	 */
-	public function createAccount($sEmail, $sPassword, $iDomainId, $iQuota)
+	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId, $iQuota)
 	{
 		if (!empty($sEmail) && !empty($sPassword))
 		{
-			$sSql = 'INSERT INTO awm_accounts ( %s, %s, %s, %s ) VALUES ( %s, %s, %d, %d )';
+			$sSql = 'INSERT INTO awm_accounts ( %s, %s, %s, %s, %s ) VALUES ( %s, %s, %d, %d, %d )';
 			return sprintf($sSql,
 				$this->escapeColumn('mail_inc_login'),
 				$this->escapeColumn('mail_inc_pass'),
+				$this->escapeColumn('id_user'),
 				$this->escapeColumn('quota'),
 				$this->escapeColumn('id_domain'),
 				$this->escapeString($sEmail),
 				$this->escapeString($sPassword),
+				(int) $iUserId,
 				(int) $iQuota,
 				(int) $iDomainId
 			);

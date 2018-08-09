@@ -61,11 +61,16 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	 */
 	public function deleteDomain($iDomainId)
 	{
-		if ($this->oStorage->deleteDomainMembers($iDomainId))
-		{
-			return $this->oStorage->deleteDomain($iDomainId);
-		}
-		return false;
+		return $this->oStorage->deleteDomain($iDomainId);
 	}
 
+	/**
+	 * Get domain member emails list.
+	 * @param int $iDomainId domain identifier.
+	 * @return boolean
+	 */
+	public function getDomainMembers($iDomainId)
+	{
+		return $this->oStorage->getDomainMembers($iDomainId);
+	}
 }

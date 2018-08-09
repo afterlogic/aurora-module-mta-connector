@@ -63,10 +63,10 @@ class Storage extends \Aurora\Modules\MailSuite\Managers\Main\Storages\DefaultSt
 	 *
 	 * @return bool
 	 */
-	public function createAccount($sEmail, $sPassword, $iDomainId, $iQuota)
+	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId, $iQuota)
 	{
 		$bResult = false;
-		if ($this->oConnection->Execute($this->oCommandCreator->createAccount($sEmail, $sPassword, $iDomainId, $iQuota)))
+		if ($this->oConnection->Execute($this->oCommandCreator->createAccount($sEmail, $sPassword, $iUserId, $iDomainId, $iQuota)))
 		{
 			$AccountId = $this->oConnection->GetLastInsertId('awm_accounts', 'id_acct');
 			$bResult = true;

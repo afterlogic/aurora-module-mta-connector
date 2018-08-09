@@ -81,6 +81,15 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 			$iDomainId
 		);
 	}
+
+	public function getDomainMembers($iDomainId)
+	{
+		$sSql = 'SELECT id_user, mail_inc_login
+				FROM awm_accounts
+				WHERE id_domain = %d';
+
+		return sprintf($sSql, (int) $iDomainId);
+	}
 }
 
 class CommandCreatorMySQL extends CommandCreator

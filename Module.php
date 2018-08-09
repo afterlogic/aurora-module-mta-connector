@@ -884,7 +884,17 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$mResult = false;
 		foreach ($IdList as $iDomainId)
 		{
-			$mResult = $this->oApiDomainsManager->deleteMailingList($iDomainId);
+			// deleteDomainMembers
+			$aDomainMemberEmails = $this->oApiDomainsManager->getDomainMembers($iDomainId);
+
+			foreach ($aDomainMemberEmails as $aMember)
+			{
+				if ($aMember['UserId'] > 0)
+				{
+					\Aurora\System\Api::GetModuleDecorator('Core')->DeleteUser($aMember['UserId']);
+				}
+			}
+			$mResult = $this->oApiDomainsManager->deleteDomain($iDomainId);
 		}
 		return $mResult;
 	}
@@ -900,7 +910,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$oUser = \Aurora\System\Api::getUserById($mResult);
 		if ($sEmail && $sPassword && $oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
-			$this->oApiMainManager->createAccount($sEmail, $sPassword, $sDomainId, $sQuota);
+			$this->oApiMainManager->createAccount($sEmail, $sPassword, $oUser->EntityId, $sDomainId, $sQuota);
 			\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
 		}
 	}
