@@ -4,13 +4,13 @@
  * For full statements of the license see LICENSE file.
  */
 
-namespace Aurora\Modules\MailSuite\Managers\MailingLists;
+namespace Aurora\Modules\MtaConnector\Managers\MailingLists;
 
 /**
  * @license https://afterlogic.com/products/common-licensing AfterLogic Software License
  * @copyright Copyright (c) 2018, Afterlogic Corp.
  *
- * @package MailSuite
+ * @package MtaConnector
  * @subpackage Managers
  */
 class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
@@ -20,7 +20,7 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	 */
 	public function __construct(\Aurora\System\Module\AbstractModule $oModule = null)
 	{
-		parent::__construct($oModule, new \Aurora\Modules\MailSuite\Managers\MailingLists\Storages\db\Storage($this));
+		parent::__construct($oModule, new \Aurora\Modules\MtaConnector\Managers\MailingLists\Storages\db\Storage($this));
 	}
 
 	/**

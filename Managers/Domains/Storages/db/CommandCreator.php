@@ -3,7 +3,7 @@
  * This code is licensed under AfterLogic Software License.
  * For full statements of the license see LICENSE file.
  */
-namespace Aurora\Modules\MailSuite\Managers\Domains\Storages\db;
+namespace Aurora\Modules\MtaConnector\Managers\Domains\Storages\db;
 /**
  * @license https://afterlogic.com/products/common-licensing AfterLogic Software License
  * @copyright Copyright (c) 2018, Afterlogic Corp.

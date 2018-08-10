@@ -5,7 +5,7 @@
  * For full statements of the licenses see LICENSE-AFTERLOGIC and LICENSE-AGPL3 files.
  */
 
-namespace Aurora\Modules\MailSuite;
+namespace Aurora\Modules\MtaConnector;
 
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
@@ -54,14 +54,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 	/***** public functions might be called with web API *****/
 	/**
-	 * @apiDefine MailSuite MailSuite Module
-	 * MailSuite module. It provides PHP and Web APIs for managing fetchers and other MailSuite features.
+	 * @apiDefine MtaConnector MtaConnector Module
+	 * MtaConnector module. It provides PHP and Web APIs for managing fetchers and other MtaConnector features.
 	 */
 	
 	/**
 	 * @api {post} ?/Api/ GetSettings
 	 * @apiName GetSettings
-	 * @apiGroup MailSuite
+	 * @apiGroup MtaConnector
 	 * @apiDescription Obtains list of module settings for authenticated user.
 	 * 
 	 * @apiHeader {string} [Authorization] "Bearer " + Authentication token which was received as the result of Core.Login method.
@@ -70,12 +70,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
 	 * 
-	 * @apiParam {string=MailSuite} Module Module name
+	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=GetSettings} Method Method name
 	 * 
 	 * @apiParamExample {json} Request-Example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'GetSettings'
 	 * }
 	 * 
@@ -90,14 +90,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiSuccessExample {json} Success response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'GetSettings',
 	 *	Result: { AllowFetchers: false }
 	 * }
 	 * 
 	 * @apiSuccessExample {json} Error response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'GetSettings',
 	 *	Result: false,
 	 *	ErrorCode: 102
@@ -119,7 +119,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/**
 	 * @api {post} ?/Api/ GetFetchers
 	 * @apiName GetFetchers
-	 * @apiGroup MailSuite
+	 * @apiGroup MtaConnector
 	 * @apiDescription Obtains all fetchers of specified user.
 	 * 
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
@@ -128,7 +128,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
 	 * 
-	 * @apiParam {string=MailSuite} Module Module name
+	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=GetServers} Method Method name
 	 * @apiParam {string} [Parameters] JSON.stringified object<br>
 	 * {<br>
@@ -137,7 +137,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiParamExample {json} Request-Example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'GetFetchers'
 	 * }
 	 * 
@@ -172,7 +172,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiSuccessExample {json} Success response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'GetFetchers',
 	 *	Result: [ { "EntityId": 14, "UUID": "uuid_value", "IdUser": 3, "IdAccount": 12,
 	 *				"IsEnabled": true, "IncomingServer": "pop.server.com", "IncomingPort": 995,
@@ -186,7 +186,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiSuccessExample {json} Error response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'GetFetchers',
 	 *	Result: false,
 	 *	ErrorCode: 102
@@ -212,7 +212,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/**
 	 * @api {post} ?/Api/ CreateFetcher
 	 * @apiName CreateFetcher
-	 * @apiGroup MailSuite
+	 * @apiGroup MtaConnector
 	 * @apiDescription Creates fetcher.
 	 * 
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
@@ -221,7 +221,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
 	 * 
-	 * @apiParam {string=MailSuite} Module Module name
+	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=CreateFetcher} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
 	 * {<br>
@@ -237,7 +237,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiParamExample {json} Request-Example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'CreateFetcher',
 	 *	Parameters: '{	"AccountId": 12, "Folder": "fetch_folder_value", "IncomingLogin": "login_value",
 	 *					"IncomingPassword": "pass_value", "IncomingServer": "pop.server.com",
@@ -252,14 +252,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiSuccessExample {json} Success response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'CreateFetcher',
 	 *	Result: 14
 	 * }
 	 * 
 	 * @apiSuccessExample {json} Error response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'CreateFetcher',
 	 *	Result: false,
 	 *	ErrorCode: 102
@@ -285,7 +285,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		
 		if ($this->getConfig('AllowFetchers', false))
 		{
-			$oFetcher = new \Aurora\Modules\MailSuite\Classes\Fetcher($this->GetName());
+			$oFetcher = new \Aurora\Modules\MtaConnector\Classes\Fetcher($this->GetName());
 			$oFetcher->IdUser = $UserId;
 			$oFetcher->IdAccount = $AccountId;
 
@@ -308,7 +308,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/**
 	 * @api {post} ?/Api/ UpdateFetcher
 	 * @apiName UpdateFetcher
-	 * @apiGroup MailSuite
+	 * @apiGroup MtaConnector
 	 * @apiDescription Updates fetcher.
 	 * 
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
@@ -317,7 +317,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
 	 * 
-	 * @apiParam {string=MailSuite} Module Module name
+	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=UpdateFetcher} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
 	 * {<br>
@@ -333,7 +333,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiParamExample {json} Request-Example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateFetcher',
 	 *	Parameters: '{ "FetcherId": 14, "IsEnabled": true, "Folder": "fetch_folder_name",
 	 *		"IncomingServer": "pop.server.com", "IncomingPort": 110, "IncomingUseSsl": false,
@@ -348,14 +348,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiSuccessExample {json} Success response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateFetcher',
 	 *	Result: true
 	 * }
 	 * 
 	 * @apiSuccessExample {json} Error response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateFetcher',
 	 *	Result: false,
 	 *	ErrorCode: 102
@@ -405,7 +405,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/**
 	 * @api {post} ?/Api/ UpdateFetcherSmtpSettings
 	 * @apiName UpdateFetcherSmtpSettings
-	 * @apiGroup MailSuite
+	 * @apiGroup MtaConnector
 	 * @apiDescription Updates fetcher SMTP settings.
 	 * 
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
@@ -414,7 +414,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
 	 * 
-	 * @apiParam {string=MailSuite} Module Module name
+	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=UpdateFetcherSmtpSettings} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
 	 * {<br>
@@ -430,7 +430,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiParamExample {json} Request-Example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateFetcherSmtpSettings',
 	 *	Parameters: '{ "FetcherId": 14, "Email": "test@email", "Name": "New my name",
 	 *		"IsOutgoingEnabled": true, "OutgoingServer": "smtp.server.com", "OutgoingPort": 25,
@@ -445,14 +445,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiSuccessExample {json} Success response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateFetcherSmtpSettings',
 	 *	Result: true
 	 * }
 	 * 
 	 * @apiSuccessExample {json} Error response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateFetcherSmtpSettings',
 	 *	Result: false,
 	 *	ErrorCode: 102
@@ -499,7 +499,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/**
 	 * @api {post} ?/Api/ UpdateSignature
 	 * @apiName UpdateSignature
-	 * @apiGroup MailSuite
+	 * @apiGroup MtaConnector
 	 * @apiDescription Updates fetcher signature.
 	 * 
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
@@ -508,7 +508,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
 	 * 
-	 * @apiParam {string=MailSuite} Module Module name
+	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=UpdateSignature} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
 	 * {<br>
@@ -519,7 +519,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiParamExample {json} Request-Example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateSignature',
 	 *	Parameters: '{ "FetcherId": 14, "UseSignature": true, "Signature": "signature_value" }'
 	 * }
@@ -532,14 +532,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiSuccessExample {json} Success response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateSignature',
 	 *	Result: true
 	 * }
 	 * 
 	 * @apiSuccessExample {json} Error response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateSignature',
 	 *	Result: false,
 	 *	ErrorCode: 102
@@ -575,7 +575,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/**
 	 * @api {post} ?/Api/ DeleteFetcher
 	 * @apiName DeleteFetcher
-	 * @apiGroup MailSuite
+	 * @apiGroup MtaConnector
 	 * @apiDescription Deletes fetcher.
 	 * 
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
@@ -584,7 +584,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
 	 * 
-	 * @apiParam {string=MailSuite} Module Module name
+	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=DeleteFetcher} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
 	 * {<br>
@@ -593,7 +593,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiParamExample {json} Request-Example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'DeleteFetcher',
 	 *	Parameters: '{ "FetcherId": 14 }'
 	 * }
@@ -606,14 +606,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * 
 	 * @apiSuccessExample {json} Success response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'DeleteFetcher',
 	 *	Result: true
 	 * }
 	 * 
 	 * @apiSuccessExample {json} Error response example:
 	 * {
-	 *	Module: 'MailSuite',
+	 *	Module: 'MtaConnector',
 	 *	Method: 'DeleteFetcher',
 	 *	Result: false,
 	 *	ErrorCode: 102

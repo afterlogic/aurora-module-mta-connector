@@ -4,7 +4,7 @@
  * For full statements of the license see LICENSE file.
  */
 
-namespace Aurora\Modules\MailSuite\Managers\Main\Storages;
+namespace Aurora\Modules\MtaConnector\Managers\Main\Storages;
 
 /**
  * @license https://afterlogic.com/products/common-licensing AfterLogic Software License
@@ -12,7 +12,7 @@ namespace Aurora\Modules\MailSuite\Managers\Main\Storages;
  *
  * @internal
  * 
- * @package MailSuite
+ * @package MtaConnector
  * @subpackage Storages
  */
 class DefaultStorage extends \Aurora\System\Managers\AbstractStorage

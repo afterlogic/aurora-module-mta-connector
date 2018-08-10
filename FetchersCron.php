@@ -1,12 +1,12 @@
 <?php
-namespace Aurora\Modules\MailSuite;
+namespace Aurora\Modules\MtaConnector;
 
 require_once dirname(__file__)."/../../system/autoload.php";
 \Aurora\System\Api::Init();
 
 class CronFetcher
 {
-	private $oMailSuiteModule;
+	private $oMtaConnectorModule;
 	private $oApiFetchersManager;
 	private $oApiAccountsManager;
 	
@@ -16,15 +16,15 @@ class CronFetcher
 	
 	public function __construct()
 	{
-		$this->oMailSuiteModule =  \Aurora\System\Api::GetModule('MailSuite');
-		$this->oApiFetchersManager = $this->oMailSuiteModule->oApiFetchersManager;
+		$this->oMtaConnectorModule =  \Aurora\System\Api::GetModule('MtaConnector');
+		$this->oApiFetchersManager = $this->oMtaConnectorModule->oApiFetchersManager;
 		
 		$oMailModule =  \Aurora\System\Api::GetModule('Mail');
 		$this->oApiAccountsManager = $oMailModule->oApiAccountsManager;
 		
-		$this->sFetchersCronMpopDataFolder = $this->oMailSuiteModule->getConfig('FetchersCronMpopDataFolder', '');
-		$this->sFetchersCronMpopScript = $this->oMailSuiteModule->getConfig('FetchersCronMpopScript', '');
-		$this->sFetchersCronDeliveryScript = $this->oMailSuiteModule->getConfig('FetchersCronDeliveryScript', '');
+		$this->sFetchersCronMpopDataFolder = $this->oMtaConnectorModule->getConfig('FetchersCronMpopDataFolder', '');
+		$this->sFetchersCronMpopScript = $this->oMtaConnectorModule->getConfig('FetchersCronMpopScript', '');
+		$this->sFetchersCronDeliveryScript = $this->oMtaConnectorModule->getConfig('FetchersCronDeliveryScript', '');
 	}
 	
 	public static function NewInstance()
@@ -130,7 +130,7 @@ class CronFetcher
 		$iTimer = microtime(true);
 		$this->log('Start fetcher cron script');
 
-		$bAllowFetchersCrone = $this->oMailSuiteModule->getConfig('AllowFetchers', false);
+		$bAllowFetchersCrone = $this->oMtaConnectorModule->getConfig('AllowFetchers', false);
 		
 		if (!$bAllowFetchersCrone)
 		{

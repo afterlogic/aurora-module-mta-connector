@@ -5,7 +5,7 @@
  * For full statements of the licenses see LICENSE-AFTERLOGIC and LICENSE-AGPL3 files.
  */
 
-namespace Aurora\Modules\MailSuite\Managers\Fetchers;
+namespace Aurora\Modules\MtaConnector\Managers\Fetchers;
 
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
@@ -31,7 +31,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 
 	/**
 	 * Tries to connect to POP3 server and login with fetcher's credentials.
-	 * @param \Aurora\Modules\MailSuite\Classes\Fetcher $oFetcher
+	 * @param \Aurora\Modules\MtaConnector\Classes\Fetcher $oFetcher
 	 */
 	private function testPop3Connect($oFetcher)
 	{
@@ -46,7 +46,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 
 	/**
 	 * Creates fetcher in database.
-	 * @param \Aurora\Modules\MailSuite\Classes\Fetcher $oFetcher Fetcher object to create in database.
+	 * @param \Aurora\Modules\MtaConnector\Classes\Fetcher $oFetcher Fetcher object to create in database.
 	 * @return bool|int
 	 */
 	public function createFetcher($oFetcher)
@@ -155,7 +155,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 
 	/**
 	 * Updates fetcher in database.
-	 * @param \Aurora\Modules\MailSuite\Classes\Fetcher $oFetcher Fetcher object to update in database.
+	 * @param \Aurora\Modules\MtaConnector\Classes\Fetcher $oFetcher Fetcher object to update in database.
 	 * @param bool $bTestPop3 Indicates if it is necessary to test POP3 connect before update.
 	 * @return bool
 	 */

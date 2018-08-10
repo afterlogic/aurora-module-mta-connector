@@ -3,14 +3,14 @@
  * This code is licensed under AfterLogic Software License.
  * For full statements of the license see LICENSE file.
  */
-namespace Aurora\Modules\MailSuite\Managers\Aliases\Storages\db;
+namespace Aurora\Modules\MtaConnector\Managers\Aliases\Storages\db;
 /**
  * @license https://afterlogic.com/products/common-licensing AfterLogic Software License
  * @copyright Copyright (c) 2018, Afterlogic Corp.
  *
  * @internal
  */
-class Storage extends \Aurora\Modules\MailSuite\Managers\Aliases\Storages\DefaultStorage
+class Storage extends \Aurora\Modules\MtaConnector\Managers\Aliases\Storages\DefaultStorage
 {
 	protected $oConnection;
 	protected $oCommandCreator;

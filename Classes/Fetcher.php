@@ -34,7 +34,7 @@
  * @subpackage Classes
  */
 
-namespace Aurora\Modules\MailSuite\Classes;
+namespace Aurora\Modules\MtaConnector\Classes;
 
 class Fetcher extends \Aurora\System\EAV\Entity
 {
