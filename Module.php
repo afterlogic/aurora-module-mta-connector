@@ -41,8 +41,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function init()
 	{
 		$this->subscribeEvent('AdminPanelWebclient::CreateUser::after', array($this, 'onAfterCreateUser'));
+		$this->subscribeEvent('Core::CreateTables::after', array($this, 'onAfterCreateTables'));
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
+		$this->subscribeEvent('Mail::ServerToResponseArray', array($this, 'onServerToResponseArray'));
 		$this->subscribeEvent('Core::AfterDeleteUser', array($this, 'onAfterDeleteUser'));
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
@@ -50,6 +52,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->oApiAliasesManager = new Managers\Aliases\Manager($this);
 		$this->oApiMailingListsManager = new Managers\MailingLists\Manager($this);
 		$this->oApiDomainsManager = new Managers\Domains\Manager($this);
+		
+		$this->extendObject(
+			'Aurora\Modules\Mail\Classes\Server', 
+			array (
+				'Native' => array('bool', false),
+			)
+		);
 	}
 
 	/***** public functions might be called with web API *****/
@@ -901,6 +910,47 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/***** public functions might be called with web API *****/
 	
 	/***** private functions *****/
+	public function onServerToResponseArray($aArgs, &$mResult)
+	{
+		if (is_array($mResult))
+		{
+			$mResult['AllowToDelete'] = !$mResult[$this->GetName().'::Native'];
+			$mResult['AllowEditDomains'] = !$mResult[$this->GetName().'::Native'];
+			if ($mResult[$this->GetName() . '::Native'])
+			{
+				$iTenantId = $this->getSingleDefaultTenantId();
+				$aDomains = $this->oApiDomainsManager->getDomains($iTenantId);
+				$getDomainName = function($oDomain) {
+					return $oDomain['Name'];
+				};
+				$aDomainsNames = array_map($getDomainName, $aDomains);
+				$mResult['Domains'] = join("\r\n", $aDomainsNames);
+			}
+		}
+	}
+	
+	public function onAfterCreateTables(&$aData, &$mResult)
+	{
+		$oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
+		$aServers = $oMailDecorator->GetServers();
+		if (is_array($aServers) && count($aServers) === 0)
+		{
+			$mServerId = $oMailDecorator->CreateServer('localhost', 'localhost', 143, false, 'localhost', 25, false, 
+				\Aurora\Modules\Mail\Enums\SmtpAuthType::NoAuthentication, '', true, false, 4190);
+			if (is_int($mServerId))
+			{
+				$oMailModule = \Aurora\System\Api::GetModule('Mail');
+				$oApiServersManager = $oMailModule->oApiServersManager;
+				$mServer = $oApiServersManager->getServer($mServerId);
+				if ($mServer)
+				{
+					$mServer->{$this->GetName().'::Native'} = true;
+					$oApiServersManager->updateServer($mServer);
+				}
+			}
+		}
+	}
+	
 	public function onAfterCreateUser(&$aData, &$mResult)
 	{
 		$sEmail = isset($aData['PublicId']) ? $aData['PublicId'] : '';
