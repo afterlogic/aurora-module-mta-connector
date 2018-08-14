@@ -30,7 +30,7 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	
 	public function updateAccountPassword($sEmail, $sPassword, $sNewPassword)
 	{
-		return $this->oStorage->updateAccountPassword($sEmail, $sPassword, $sNewPassword);
+		return $this->oStorage->updateAccountPassword($sEmail, $sPassword, self::EncodePassword($sNewPassword));
 	}	
 	
 

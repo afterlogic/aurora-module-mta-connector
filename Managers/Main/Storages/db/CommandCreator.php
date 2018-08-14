@@ -89,7 +89,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	{
 		if (!empty($sEmail) && !empty($sPassword) && !empty($sNewPassword))
 		{
-			$sSql = 'UPDATE awm_accounts set mail_inc_pass = %s where mail_inc_login = %s and  mail_inc_pass = %s';
+			$sSql = 'UPDATE awm_accounts set mail_inc_pass = %s where mail_inc_login = %s and  DP1(mail_inc_pass) = %s';
 			return sprintf($sSql,
 				$this->escapeString($sNewPassword),
 				$this->escapeString($sEmail),
