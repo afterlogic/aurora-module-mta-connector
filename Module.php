@@ -842,7 +842,22 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			$TenantId = $this->getSingleDefaultTenantId();
 		}
-		return $this->oApiDomainsManager->createDomain($TenantId, $DomainName);
+		$mResult = $this->oApiDomainsManager->createDomain($TenantId, $DomainName);
+		if ($mResult)
+		{
+			$oServer = \Aurora\System\Api::GetModule('Mail')->oApiServersManager->getServerByFilter([$this->GetName() . '::Native' => true]);
+			if ($oServer instanceof \Aurora\Modules\Mail\Classes\Server)
+			{
+				$oServer->Domains .= "\r\n" . trim($DomainName);
+				\Aurora\System\Api::GetModule('Mail')->oApiServersManager->updateServer($oServer);
+			}
+			else
+			{
+				$mResult = false;
+			}
+		}
+
+		return $mResult;
 	}
 	
 	/**
@@ -895,7 +910,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			// deleteDomainMembers
 			$aDomainMemberEmails = $this->oApiDomainsManager->getDomainMembers($iDomainId);
-
+			$oDomain = $this->oApiDomainsManager->getDomain($iDomainId);
 			foreach ($aDomainMemberEmails as $aMember)
 			{
 				if ($aMember['UserId'] > 0)
@@ -904,6 +919,21 @@ class Module extends \Aurora\System\Module\AbstractModule
 				}
 			}
 			$mResult = $this->oApiDomainsManager->deleteDomain($iDomainId);
+			if ($mResult)
+			{//remove domain from server domains list
+				$oServer = \Aurora\System\Api::GetModule('Mail')->oApiServersManager->getServerByDomain($oDomain['Name']);
+				if ($oServer instanceof \Aurora\Modules\Mail\Classes\Server)
+				{
+					$aDomainsNames = explode("\r\n", $oServer->Domains);
+					$iIndex = array_search($oDomain['Name'], $aDomainsNames);
+					if ($iIndex !== false)
+					{
+						array_splice($aDomainsNames, $iIndex, 1);
+						$oServer->Domains = join("\r\n", $aDomainsNames);
+						\Aurora\System\Api::GetModule('Mail')->oApiServersManager->updateServer($oServer);
+					}
+				}
+			}
 		}
 		return $mResult;
 	}
@@ -928,16 +958,6 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			$mResult['AllowToDelete'] = !$mResult[$this->GetName().'::Native'];
 			$mResult['AllowEditDomains'] = !$mResult[$this->GetName().'::Native'];
-			if ($mResult[$this->GetName() . '::Native'])
-			{
-				$iTenantId = $this->getSingleDefaultTenantId();
-				$aDomains = $this->oApiDomainsManager->getDomains($iTenantId);
-				$getDomainName = function($oDomain) {
-					return $oDomain['Name'];
-				};
-				$aDomainsNames = array_map($getDomainName, $aDomains);
-				$mResult['Domains'] = join("\r\n", $aDomainsNames);
-			}
 		}
 	}
 	
