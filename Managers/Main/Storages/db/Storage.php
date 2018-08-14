@@ -75,6 +75,13 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 		$this->throwDbExceptionIfExist();
 		return $bResult;
 	}
+	
+	public function updateAccountPassword($sEmail, $sPassword, $sNewPassword)
+	{
+		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateAccountPassword($sEmail, $sPassword, $sNewPassword));
+		$this->throwDbExceptionIfExist();
+		return $bResult;
+	}	
 
 	public function deleteAccount($sEmail)
 	{

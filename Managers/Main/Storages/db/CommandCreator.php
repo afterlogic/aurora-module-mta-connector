@@ -84,6 +84,21 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 
 		return '';
 	}
+	
+	public function updateAccountPassword($sEmail, $sPassword, $sNewPassword)
+	{
+		if (!empty($sEmail) && !empty($sPassword) && !empty($sNewPassword))
+		{
+			$sSql = 'UPDATE awm_accounts set mail_inc_pass = %s where mail_inc_login = %s and  mail_inc_pass = %s';
+			return sprintf($sSql,
+				$this->escapeString($sNewPassword),
+				$this->escapeString($sEmail),
+				$this->escapeString($sPassword)
+			);
+		}
+
+		return '';
+	}
 
 	/**
 	 * TODO remove this method

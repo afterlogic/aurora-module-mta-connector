@@ -907,6 +907,18 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 		return $mResult;
 	}
+	
+	/**
+	 * 
+	 * @param type $Email
+	 * @param type $Password
+	 * @param type $NewPassword
+	 * @return type
+	 */
+	public function UpdateAccountPassword($Email, $Password, $NewPassword)
+	{
+		return $this->oApiMainManager->updateAccountPassword($Email, $Password, $NewPassword);
+	}
 	/***** public functions might be called with web API *****/
 	
 	/***** private functions *****/
