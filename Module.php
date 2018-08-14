@@ -943,6 +943,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 	
 	public function onAfterCreateTables(&$aData, &$mResult)
 	{
+		$this->oApiMainManager->createTablesFromFile();
+		$this->oApiMainManager->createProceduresFromFile();
+
 		$oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
 		$aServers = $oMailDecorator->GetServers();
 		if (is_array($aServers) && count($aServers) === 0)

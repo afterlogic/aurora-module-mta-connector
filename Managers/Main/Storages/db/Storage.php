@@ -101,4 +101,25 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 	{
 		return $this->_getUserBySql($this->oCommandCreator->getUserById($iIdTenant, $iHelpdeskUserId));
 	}
+
+	public function createProceduresFromFile($sFilePath)
+	{
+		$mFileContent = file_exists($sFilePath) ? file_get_contents($sFilePath) : false;
+
+		if ($mFileContent && $this->oConnection)
+		{
+			$sPrepSql = trim($mFileContent);
+			if (!empty($sPrepSql))
+			{
+				$Settings = \Aurora\System\Api::GetSettings();
+
+				$sql = new \Aurora\System\Db\MySql($Settings->GetConf('DBHost'),
+					$Settings->GetConf('DBLogin'),
+					$Settings->GetConf('DBPassword'),
+					$Settings->GetConf('DBName'));
+				$sql->Connect();
+				$sql->Execute($sPrepSql);
+			}
+		}
+	}
 }

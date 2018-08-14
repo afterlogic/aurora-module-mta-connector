@@ -39,6 +39,30 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		return $this->oStorage->deleteAccount($sEmail);
 	}
 
+	/**
+	 * Creates tables required for module work by executing create.sql file.
+	 *
+	 * @return boolean
+	 */
+	public function createTablesFromFile()
+	{
+		$sFilePath = dirname(__FILE__) . '/Storages/db/Sql/create.sql';
+		$bResult = \Aurora\System\Managers\Db::getInstance()->executeSqlFile($sFilePath);
+		
+		return $bResult;
+	}
+
+	/**
+	 * Creates procedures required for module work by executing procedures.sql file.
+	 *
+	 * @return boolean
+	 */
+	public function createProceduresFromFile()
+	{
+		$sFilePath = dirname(__FILE__) . '/Storages/db/Sql/procedure.sql';
+		$this->oStorage->createProceduresFromFile($sFilePath);
+	}
+
 	public static function DecodePassword($sPassword)
 	{
 		$sResult = '';
