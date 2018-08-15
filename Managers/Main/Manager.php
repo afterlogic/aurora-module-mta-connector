@@ -52,17 +52,6 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		return $bResult;
 	}
 
-	/**
-	 * Creates procedures required for module work by executing procedures.sql file.
-	 *
-	 * @return boolean
-	 */
-	public function createProceduresFromFile()
-	{
-		$sFilePath = dirname(__FILE__) . '/Storages/db/Sql/procedure.sql';
-		$this->oStorage->createProceduresFromFile($sFilePath);
-	}
-
 	public static function EncodePassword($sPassword)
 	{
 		if (empty($sPassword))
