@@ -67,7 +67,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	{
 		if (!empty($sEmail) && !empty($sPassword))
 		{
-			$sSql = 'INSERT INTO awm_accounts ( %s, %s, %s, %s, %s ) VALUES ( %s, %s, %d, %d, %d )';
+			$sSql = "INSERT INTO awm_accounts ( %s, %s, %s, %s, %s ) VALUES ( %s, %s, %d, %d, %d )";
 			return sprintf($sSql,
 				$this->escapeColumn('mail_inc_login'),
 				$this->escapeColumn('mail_inc_pass'),
@@ -89,7 +89,11 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	{
 		if (!empty($sEmail) && !empty($sPassword) && !empty($sNewPassword))
 		{
-			$sSql = 'UPDATE awm_accounts set mail_inc_pass = %s where mail_inc_login = %s and  DP1(mail_inc_pass) = %s';
+			$sSql = 'UPDATE awm_accounts set mail_inc_pass = %s where mail_inc_login = %s and
+					CONCAT(SHA2(CONCAT(%s, UNHEX(SUBSTR(mail_inc_pass, -16))), 256), SUBSTR(mail_inc_pass, -16)) = mail_inc_pass';
+			//SUBSTR(mail_inc_pass, -16) = salt
+			//SHA2(CONCAT({plain-password}, UNHEX(salt)), 256) = salted hash
+			//hash + salt = S(alted)SH256
 			return sprintf($sSql,
 				$this->escapeString($sNewPassword),
 				$this->escapeString($sEmail),

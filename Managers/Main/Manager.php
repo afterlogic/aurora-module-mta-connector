@@ -63,56 +63,14 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		$this->oStorage->createProceduresFromFile($sFilePath);
 	}
 
-	public static function DecodePassword($sPassword)
-	{
-		$sResult = '';
-		$iPasswordLen = strlen($sPassword);
-
-		if (0 < $iPasswordLen && strlen($sPassword) % 2 == 0)
-		{
-			$sDecodeByte = chr(hexdec(substr($sPassword, 0, 2)));
-			$sPlainBytes = $sDecodeByte;
-			$iStartIndex = 2;
-			$iCurrentByte = 1;
-
-			do
-			{
-				$sHexByte = substr($sPassword, $iStartIndex, 2);
-				$sPlainBytes .= (chr(hexdec($sHexByte)) ^ $sDecodeByte);
-
-				$iStartIndex += 2;
-				$iCurrentByte++;
-			}
-			while ($iStartIndex < $iPasswordLen);
-
-			$sResult = $sPlainBytes;
-		}
-
-		// fix problem with 1-symbol password
-		if ($iPasswordLen === 2 && $iPasswordLen === strlen($sResult))
-		{
-			$sResult = substr($sResult, 0,  1);
-		}
-
-		return $sResult;
-	}
-
 	public static function EncodePassword($sPassword)
 	{
 		if (empty($sPassword))
 		{
 			return '';
 		}
-
-		$sPlainBytes = $sPassword;
-		$sEncodeByte = $sPlainBytes{0};
-		$sResult = bin2hex($sEncodeByte);
-
-		for ($iIndex = 1, $iLen = strlen($sPlainBytes); $iIndex < $iLen; $iIndex++)
-		{
-			$sPlainBytes{$iIndex} = ($sPlainBytes{$iIndex} ^ $sEncodeByte);
-			$sResult .= bin2hex($sPlainBytes{$iIndex});
-		}
+		$salt = substr(sha1(rand()), 0, 16);
+		$sResult = hash('sha256', $sPassword . hex2bin($salt)) . $salt;
 
 		return $sResult;
 	}
