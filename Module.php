@@ -848,7 +848,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oServer = \Aurora\System\Api::GetModule('Mail')->oApiServersManager->getServerByFilter([$this->GetName() . '::Native' => true]);
 			if ($oServer instanceof \Aurora\Modules\Mail\Classes\Server)
 			{
-				$oServer->Domains .= "\r\n" . trim($DomainName);
+				$oServer->Domains .= ($oServer->Domains ? "\r\n" : '') . trim($DomainName);
 				\Aurora\System\Api::GetModule('Mail')->oApiServersManager->updateServer($oServer);
 			}
 			else
