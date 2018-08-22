@@ -101,4 +101,22 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 	{
 		return $this->_getUserBySql($this->oCommandCreator->getUserById($iIdTenant, $iHelpdeskUserId));
 	}
+
+	public function getUserQuotas($aUserIds)
+	{
+		$mResult = [];
+		if ($this->oConnection->Execute($this->oCommandCreator->getUserQuotas($aUserIds)))
+		{
+			while (false !== ($oRow = $this->oConnection->GetNextRecord()))
+			{
+				if ($oRow)
+				{
+					$mResult[$oRow->id_user] = $oRow->total_quota;
+				}
+			}
+		}
+		$this->throwDbExceptionIfExist();
+
+		return $mResult;
+	}
 }

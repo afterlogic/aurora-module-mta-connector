@@ -46,6 +46,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::ServerToResponseArray', array($this, 'onServerToResponseArray'));
 		$this->subscribeEvent('Core::AfterDeleteUser', array($this, 'onAfterDeleteUser'));
+		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -949,6 +950,22 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		return $this->oApiMainManager->updateAccountPassword($Email, $Password, $NewPassword);
 	}
+
+	public function GetUserQuota($UserId)
+	{
+		$iResult = 0;
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
+		//Only owner or superadmin can get quota
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User &&
+			($oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin ||
+			$oUser->Role === \Aurora\System\Enums\UserRole::NormalUser && $oUser->EntityId === $UserId))
+		{
+			$aUserQuotas = $this->oApiMainManager->getUserQuotas([$UserId]);
+			$iResult =  isset($aUserQuotas[$UserId]) ? $aUserQuotas[$UserId] : 0;
+		}
+
+		return $iResult;
+	}
 	/***** public functions might be called with web API *****/
 	
 	/***** private functions *****/
@@ -998,7 +1015,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
 		}
 	}
-	
+
 	public function onBeforeSendOrSaveMessage(&$aArgs, &$mResult)
 	{
 		$oFetcher = $this->oApiFetchersManager->getFetcher($aArgs['FetcherID']);
@@ -1037,18 +1054,31 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 
+	public function onAfterGetEntityList($aArgs, &$mResult)
+	{
+		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User')
+		{
+			$aUserIds = array_map(function($aUser) { return $aUser['Id']; }, $mResult['Items']);
+			$aUserQuotas = $this->oApiMainManager->getUserQuotas($aUserIds);
+			foreach ($mResult['Items'] as &$aUser)
+			{
+				$aUser['Quota'] = isset($aUserQuotas[$aUser['Id']]) ? $aUserQuotas[$aUser['Id']] : 0;
+			}
+		}
+	}
+
+	/***** private functions *****/
 	private function getSingleDefaultTenantId()
 	{
 		$iTenantId = 0;
 		$oSettings =& \Aurora\System\Api::GetSettings();
-		
+
 		if (!$oSettings->GetConf('EnableMultiChannel') && !$oSettings->GetConf('EnableMultiTenant'))
 		{
 			$oCoreDecorator = \Aurora\System\Api::GetModuleDecorator('Core');
 			$iTenantId = $oCoreDecorator->GetTenantIdByName('Default');
 		}
-		
+
 		return $iTenantId;
 	}
-	/***** private functions *****/
 }

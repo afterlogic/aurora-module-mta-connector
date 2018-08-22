@@ -72,7 +72,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 				$this->escapeColumn('mail_inc_login'),
 				$this->escapeColumn('mail_inc_pass'),
 				$this->escapeColumn('id_user'),
-				$this->escapeColumn('quota'),
+				$this->escapeColumn('total_quota'),
 				$this->escapeColumn('id_domain'),
 				$this->escapeString($sEmail),
 				$this->escapeString($sPassword),
@@ -139,6 +139,22 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 			$this->escapeColumn('id_tenant'), $oUser->IdTenant,
 			$this->escapeColumn('id_helpdesk_user'), $oUser->EntityId
 		);
+	}
+
+	public function getUserQuotas($aUserIds)
+	{
+		if (is_array($aUserIds) && !empty($aUserIds))
+		{
+			$sSql = 'SELECT %s, %s FROM awm_accounts WHERE %s IN (%s)';
+			return sprintf($sSql,
+				$this->escapeColumn('id_user'),
+				$this->escapeColumn('total_quota'),
+				$this->escapeColumn('id_user'),
+				implode(',', array_map(function($UserId) { return (int) $UserId; }, $aUserIds))
+			);
+		}
+
+		return '';
 	}
 }
 

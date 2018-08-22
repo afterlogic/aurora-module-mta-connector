@@ -52,6 +52,17 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		return $bResult;
 	}
 
+	/**
+	 * Return array of users quota
+	 *
+	 * @param array $aUserIds
+	 * @return array
+	 */
+	public function getUserQuotas($aUserIds)
+	{
+		return $this->oStorage->getUserQuotas($aUserIds);
+	}
+
 	public static function EncodePassword($sPassword)
 	{
 		if (empty($sPassword))
