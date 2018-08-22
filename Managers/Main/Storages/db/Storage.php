@@ -119,4 +119,11 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 
 		return $mResult;
 	}
+
+	public function updateUserQuota($UserId, $iQuota)
+	{
+		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateUserQuota($UserId, $iQuota));
+		$this->throwDbExceptionIfExist();
+		return $bResult;
+	}
 }

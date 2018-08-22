@@ -156,6 +156,18 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 
 		return '';
 	}
+
+	public function updateUserQuota($UserId, $iQuota)
+	{
+		$sSql = 'UPDATE awm_accounts SET %s=%d WHERE %s = %d';
+		return sprintf($sSql,
+			$this->escapeColumn('total_quota'),
+			(int) $iQuota,
+			$this->escapeColumn('id_user'),
+			(int) $UserId
+		);
+	}
+
 }
 
 /**

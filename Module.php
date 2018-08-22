@@ -47,6 +47,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Mail::ServerToResponseArray', array($this, 'onServerToResponseArray'));
 		$this->subscribeEvent('Core::AfterDeleteUser', array($this, 'onAfterDeleteUser'));
 		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
+		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -1067,6 +1068,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 
+	public function onAfterUpdateEntity($aArgs, &$mResult)
+	{
+		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User' &&
+			isset($aArgs['Data']) && isset($aArgs['Data']['Id']) && isset($aArgs['Data']['Quota']))
+		{
+			$this->oApiMainManager->updateUserQuota($aArgs['Data']['Id'], $aArgs['Data']['Quota']);
+		}
+	}
 	/***** private functions *****/
 	private function getSingleDefaultTenantId()
 	{
