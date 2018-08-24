@@ -16,6 +16,8 @@ namespace Aurora\Modules\MtaConnector;
  */
 class Module extends \Aurora\System\Module\AbstractModule
 {
+	const QUOTA_KILO_MULTIPLIER = 1024;
+
 	public $oApiMainManager = null;
 
 	/* 
@@ -48,6 +50,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Core::AfterDeleteUser', array($this, 'onAfterDeleteUser'));
 		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
 		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
+		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuota'), 110);
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -961,7 +964,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			($oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin ||
 			$oUser->Role === \Aurora\System\Enums\UserRole::NormalUser && $oUser->EntityId === $UserId))
 		{
-			$aUserQuotas = $this->oApiMainManager->getUserQuotas([$UserId]);
+			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$UserId]);
 			$iResult =  isset($aUserQuotas[$UserId]) ? $aUserQuotas[$UserId] : 0;
 		}
 
@@ -1060,7 +1063,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User')
 		{
 			$aUserIds = array_map(function($aUser) { return $aUser['Id']; }, $mResult['Items']);
-			$aUserQuotas = $this->oApiMainManager->getUserQuotas($aUserIds);
+			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas($aUserIds);
 			foreach ($mResult['Items'] as &$aUser)
 			{
 				$aUser['Quota'] = isset($aUserQuotas[$aUser['Id']]) ? $aUserQuotas[$aUser['Id']] : 0;
@@ -1073,7 +1076,24 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User' &&
 			isset($aArgs['Data']) && isset($aArgs['Data']['Id']) && isset($aArgs['Data']['Quota']))
 		{
-			$this->oApiMainManager->updateUserQuota($aArgs['Data']['Id'], $aArgs['Data']['Quota']);
+			$this->oApiMainManager->updateUserTotalQuota($aArgs['Data']['Id'], $aArgs['Data']['Quota']);
+		}
+	}
+
+	public function onAfterGetQuota($aArgs, &$mResult)
+	{
+		//We get the used space of the file quota, take its value from the total quota and write result in the mail quota
+		if (isset($aArgs['UserId']))
+		{
+			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['UserId']]);
+			$iTotalQuota =  isset($aUserQuotas[$aArgs['UserId']]) ? $aUserQuotas[$aArgs['UserId']] : 0;
+			if (isset($mResult['Used']))
+			{
+				$iFileUsage = $mResult['Used'];
+				//TotalQuota  value is in KBytes while FileUsage value is in Bytes
+				$iMailQuota = $iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER;
+				$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuota > 0 ? $iMailQuota : 1);
+			}
 		}
 	}
 	/***** private functions *****/

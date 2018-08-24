@@ -141,7 +141,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		);
 	}
 
-	public function getUserQuotas($aUserIds)
+	public function getUserTotalQuotas($aUserIds)
 	{
 		if (is_array($aUserIds) && !empty($aUserIds))
 		{
@@ -157,7 +157,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		return '';
 	}
 
-	public function updateUserQuota($UserId, $iQuota)
+	public function updateUserTotalQuota($UserId, $iQuota)
 	{
 		$sSql = 'UPDATE awm_accounts SET %s=%d WHERE %s = %d';
 		return sprintf($sSql,
@@ -168,6 +168,16 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		);
 	}
 
+	public function updateUserMailQuota($UserId, $iQuota)
+	{
+		$sSql = 'UPDATE awm_accounts SET %s=%d WHERE %s = %d';
+		return sprintf($sSql,
+			$this->escapeColumn('mail_quota'),
+			(int) $iQuota,
+			$this->escapeColumn('id_user'),
+			(int) $UserId
+		);
+	}
 }
 
 /**

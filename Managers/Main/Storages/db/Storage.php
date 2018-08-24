@@ -102,10 +102,10 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 		return $this->_getUserBySql($this->oCommandCreator->getUserById($iIdTenant, $iHelpdeskUserId));
 	}
 
-	public function getUserQuotas($aUserIds)
+	public function getUserTotalQuotas($aUserIds)
 	{
 		$mResult = [];
-		if ($this->oConnection->Execute($this->oCommandCreator->getUserQuotas($aUserIds)))
+		if ($this->oConnection->Execute($this->oCommandCreator->getUserTotalQuotas($aUserIds)))
 		{
 			while (false !== ($oRow = $this->oConnection->GetNextRecord()))
 			{
@@ -120,9 +120,16 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 		return $mResult;
 	}
 
-	public function updateUserQuota($UserId, $iQuota)
+	public function updateUserTotalQuota($UserId, $iQuota)
 	{
-		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateUserQuota($UserId, $iQuota));
+		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateUserTotalQuota($UserId, $iQuota));
+		$this->throwDbExceptionIfExist();
+		return $bResult;
+	}
+
+		public function updateUserMailQuota($UserId, $iQuota)
+	{
+		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateUserMailQuota($UserId, $iQuota));
 		$this->throwDbExceptionIfExist();
 		return $bResult;
 	}
