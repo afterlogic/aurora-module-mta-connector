@@ -22,5 +22,9 @@
     "FetchersIntervalMinutes": [
         20,
         "int"
+    ],
+    "UserDefaultQuotaMB": [
+        200,
+        "int"
     ]
 }

@@ -127,6 +127,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		
 		return array(
 			'AllowFetchers' => $this->getConfig('AllowFetchers', false),
+			'UserDefaultQuotaMB' => $this->getConfig('UserDefaultQuotaMB', false)
 		);
 	}
 	
