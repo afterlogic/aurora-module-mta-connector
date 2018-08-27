@@ -50,7 +50,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Core::AfterDeleteUser', array($this, 'onAfterDeleteUser'));
 		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
 		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
-		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuota'), 110);
+		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -1088,7 +1088,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 
-	public function onAfterGetQuota($aArgs, &$mResult)
+	public function onAfterGetQuotaFiles($aArgs, &$mResult)
 	{
 		//We get the used space of the file quota, take its value from the total quota and write result in the mail quota
 		if (isset($aArgs['UserId']))
@@ -1101,6 +1101,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				//TotalQuota  value is in KBytes while FileUsage value is in Bytes
 				$iMailQuota = $iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER;
 				$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuota > 0 ? $iMailQuota : 1);
+				$mResult['Limit'] = $iTotalQuota * self::QUOTA_KILO_MULTIPLIER;
 			}
 		}
 	}
