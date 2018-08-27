@@ -115,6 +115,21 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 			(int) $UserId
 		);
 	}
+
+	public function getUserMailQuota($UserId)
+	{
+		if ($UserId)
+		{
+			$sSql = 'SELECT %s FROM awm_accounts WHERE %s = %s';
+			return sprintf($sSql,
+				$this->escapeColumn('mail_quota'),
+				$this->escapeColumn('id_user'),
+				(int) $UserId
+			);
+		}
+
+		return '';
+	}
 }
 
 /**

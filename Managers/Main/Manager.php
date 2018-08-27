@@ -87,6 +87,17 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		return $this->oStorage->updateUserMailQuota($UserId, $iQuota);
 	}
 
+	/**
+	 * Return user mail quota
+	 *
+	 * @param $UserId
+	 * @return int
+	 */
+	public function getUserMailQuota($UserId)
+	{
+		return $this->oStorage->getUserMailQuota($UserId);
+	}
+
 	public static function EncodePassword($sPassword)
 	{
 		if (empty($sPassword))

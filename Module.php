@@ -1077,7 +1077,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User' &&
 			isset($aArgs['Data']) && isset($aArgs['Data']['Id']) && isset($aArgs['Data']['Quota']))
 		{
+			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['Data']['Id']]);
+			$iUserOldTotalQuota =  isset($aUserQuotas[$aArgs['Data']['Id']]) ? $aUserQuotas[$aArgs['Data']['Id']] : 0;
+			$iDifference = $iUserOldTotalQuota - $aArgs['Data']['Quota'];
 			$this->oApiMainManager->updateUserTotalQuota($aArgs['Data']['Id'], $aArgs['Data']['Quota']);
+			//Update mail quota
+			$iMailQuota = $this->oApiMainManager->getUserMailQuota($aArgs['Data']['Id']);
+			$iNewMailQuota = $iMailQuota - $iDifference;
+			$this->oApiMainManager->updateUserMailQuota($aArgs['Data']['Id'], $iNewMailQuota > 0 ? $iNewMailQuota : 1);
 		}
 	}
 
