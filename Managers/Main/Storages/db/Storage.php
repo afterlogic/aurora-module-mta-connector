@@ -127,6 +127,23 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 		return $iMailQuotaUsage;
 	}
 
+	public function getUserFilesQuotaUsage($UserId)
+	{
+		$iMailQuotaUsage = 0;
+		if ($this->oConnection->Execute($this->oCommandCreator->getUserFilesQuotaUsage($UserId)))
+		{
+			$oRow = $this->oConnection->GetNextRecord();
+			if ($oRow)
+			{
+				$iMailQuotaUsage = (int) $oRow->files_quota_usage_bytes;
+			}
+			$this->oConnection->FreeResult();
+		}
+		$this->throwDbExceptionIfExist();
+
+		return $iMailQuotaUsage;
+	}
+
 	public function updateFileQuotaUsage($UserId, $iUsage)
 	{
 		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateFileQuotaUsage($UserId, $iUsage));
