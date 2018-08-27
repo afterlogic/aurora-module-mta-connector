@@ -10,7 +10,7 @@ namespace Aurora\Modules\MtaConnector\Managers\Main\Storages\db;
  *
  * @internal
  * 
- * @package Helpdesk
+ * @package MtaConnector
  * @subpackage Storages
  */
 class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\DefaultStorage
@@ -31,35 +31,6 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 	}
 
 	/**
-	 * TODO remove
-	 * @param string $sSql
-	 *
-	 * @return CHelpdeskUser|false
-	 */
-	protected function _getUserBySql($sSql)
-	{
-		$oUser = false;
-		if ($this->oConnection->Execute($sSql))
-		{
-			$oUser = null;
-
-			$oRow = $this->oConnection->GetNextRecord();
-			if ($oRow)
-			{
-				$oUser = new CHelpdeskUser();
-				$oUser->InitByDbRow($oRow);
-			}
-
-			$this->oConnection->FreeResult();
-		}
-
-		$this->throwDbExceptionIfExist();
-		return $oUser;
-	}
-
-	/**
-	 * TODO remove
-	 * @param CHelpdeskUser $oHelpdeskUser
 	 *
 	 * @return bool
 	 */
@@ -88,18 +59,6 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 		$bResult = $this->oConnection->Execute($this->oCommandCreator->deleteAccountByEmail($sEmail));
 		$this->throwDbExceptionIfExist();
 		return $bResult;
-	}
-
-	/**
-	 * TODO use Core modue API and remove this this method
-	 * @param int $iIdTenant
-	 * @param int $iHelpdeskUserId
-	 *
-	 * @return CHelpdeskUser|false
-	 */
-	public function getUserById($iIdTenant, $iHelpdeskUserId)
-	{
-		return $this->_getUserBySql($this->oCommandCreator->getUserById($iIdTenant, $iHelpdeskUserId));
 	}
 
 	public function getUserTotalQuotas($aUserIds)
