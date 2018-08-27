@@ -1091,20 +1091,22 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function onAfterGetQuotaFiles($aArgs, &$mResult)
 	{
 		//We get the used space of the file quota, take its value from the total quota and write result in the mail quota
-		if (isset($aArgs['UserId']))
+		//TODO: update mail quota and file usage after file uploaded/deleted
+		if (isset($aArgs['UserId']) && isset($mResult['Used']))
 		{
 			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['UserId']]);
 			$iTotalQuota =  isset($aUserQuotas[$aArgs['UserId']]) ? $aUserQuotas[$aArgs['UserId']] : 0;
-			if (isset($mResult['Used']))
-			{
-				$iFileUsage = $mResult['Used'];
-				//TotalQuota  value is in KBytes while FileUsage value is in Bytes
-				$iMailQuota = $iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER;
-				$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuota > 0 ? $iMailQuota : 1);
-				$mResult['Limit'] = $iTotalQuota * self::QUOTA_KILO_MULTIPLIER;
-			}
+			$iFileUsage = $mResult['Used'];
+			$iMailQuotaUsage = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
+			//TotalQuota  value is in KBytes while FileUsage value is in Bytes
+			$iMailQuota = $iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER;
+			$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuota > 0 ? $iMailQuota : 1);
+			$this->oApiMainManager->updateFileQuotaUsage($aArgs['UserId'], $iFileUsage);
+			$mResult['Limit'] = $iTotalQuota * self::QUOTA_KILO_MULTIPLIER;
+			$mResult['Used'] += $iMailQuotaUsage;
 		}
 	}
+
 	/***** private functions *****/
 	private function getSingleDefaultTenantId()
 	{
