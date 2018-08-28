@@ -845,6 +845,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		
+		if ($DomainName === '')
+		{
+			throw new \Aurora\System\Exceptions\ApiException(\Aurora\System\Notifications::InvalidInputParameter);
+		}
+		
 		if ($TenantId === 0)
 		{
 			$TenantId = $this->getSingleDefaultTenantId();
