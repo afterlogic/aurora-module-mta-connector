@@ -855,7 +855,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oServer = \Aurora\System\Api::GetModule('Mail')->oApiServersManager->getServerByFilter([$this->GetName() . '::Native' => true]);
 			if ($oServer instanceof \Aurora\Modules\Mail\Classes\Server)
 			{
-				$oServer->Domains .= ($oServer->Domains ? "\r\n" : '') . trim($DomainName);
+				if ($oServer->Domains === '*')
+				{
+					$oServer->Domains = trim($DomainName);
+				}
+				else
+				{
+					$oServer->Domains .= ($oServer->Domains ? "\r\n" : '') . trim($DomainName);
+				}
 				\Aurora\System\Api::GetModule('Mail')->oApiServersManager->updateServer($oServer);
 			}
 			else
@@ -936,7 +943,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 					if ($iIndex !== false)
 					{
 						array_splice($aDomainsNames, $iIndex, 1);
-						$oServer->Domains = join("\r\n", $aDomainsNames);
+						$oServer->Domains = count($aDomainsNames) === 0 ? '*' : join("\r\n", $aDomainsNames);
 						\Aurora\System\Api::GetModule('Mail')->oApiServersManager->updateServer($oServer);
 					}
 				}
@@ -993,7 +1000,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if (is_array($aServers) && count($aServers) === 0)
 		{
 			$mServerId = $oMailDecorator->CreateServer('localhost', 'localhost', 143, false, 'localhost', 25, false, 
-				\Aurora\Modules\Mail\Enums\SmtpAuthType::NoAuthentication, '', true, false, 4190);
+				\Aurora\Modules\Mail\Enums\SmtpAuthType::NoAuthentication, '*', true, false, 4190);
 			if (is_int($mServerId))
 			{
 				$oMailModule = \Aurora\System\Api::GetModule('Mail');
