@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS `awm_accounts` (
 	`id_domain` INT(11) NOT NULL DEFAULT '0',
 	`id_tenant` INT(11) NOT NULL DEFAULT '0',
 	`deleted` TINYINT(1) NOT NULL DEFAULT '0',
-	`quota` INT(11) UNSIGNED NOT NULL DEFAULT '0',
+	`mail_quota` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+	`total_quota` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
 	`email` VARCHAR(255) NOT NULL DEFAULT '',
 	`mail_inc_login` VARCHAR(255) NULL DEFAULT NULL,
 	`mail_inc_pass` VARCHAR(255) NULL DEFAULT NULL,
@@ -17,12 +18,13 @@ CREATE TABLE IF NOT EXISTS `awm_accounts` (
 	INDEX `AWM_ACCOUNTS_EMAIL_INDEX` (`email`)
 )
 COLLATE='utf8_general_ci'
-ENGINE=InnoDB
-AUTO_INCREMENT=30;
+ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `awm_account_quotas` (
 	`name` VARCHAR(100) NOT NULL DEFAULT '',
-	`quota_usage_bytes` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+	`mail_quota_usage_bytes` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+	`files_quota_usage_bytes` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+	`quota_usage_messages` INT(10) UNSIGNED NOT NULL DEFAULT '0',
 	INDEX `AWM_ACCOUNT_QUOTAS_NAME_INDEX` (`name`)
 )
 COLLATE='utf8_general_ci'
@@ -32,12 +34,12 @@ CREATE TABLE IF NOT EXISTS `awm_domains` (
 	`id_domain` INT(11) NOT NULL AUTO_INCREMENT,
 	`id_tenant` INT(11) NOT NULL DEFAULT '0',
 	`name` VARCHAR(255) NULL DEFAULT NULL,
-	`user_quota` INT(11) NOT NULL DEFAULT '0',
+	`mail_user_quota` INT(11) NOT NULL DEFAULT '0',
+	`total_user_quota` INT(11) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id_domain`)
 )
 COLLATE='utf8_general_ci'
-ENGINE=InnoDB
-AUTO_INCREMENT=3;
+ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `awm_mailaliases` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
