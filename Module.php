@@ -1144,14 +1144,21 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 	public function onAfterGetQuotaMail($aArgs, &$mResult)
 	{
-		if (isset($aArgs['UserId']))
+		if (isset($aArgs['UserId']) && isset($aArgs['AccountID']))
 		{
-			$iFilesQuotaUsage = $this->oApiMainManager->getUserFilesQuotaUsage($aArgs['UserId']);
-			//$iFilesQuotaUsage  value is in Bytes while $mResult[0]/*mail usage*/ value is in KBytes
-			$mResult[0] += ($iFilesQuotaUsage / self::QUOTA_KILO_MULTIPLIER);
-			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['UserId']]);
-			$iTotalQuota =  isset($aUserQuotas[$aArgs['UserId']]) ? $aUserQuotas[$aArgs['UserId']] : 0;
-			$mResult[1] = $iTotalQuota;
+			$oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
+			$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccount($aArgs['AccountID']);
+			if ($oUser instanceof \Aurora\Modules\Core\Classes\User &&
+				$oAccount instanceof \Aurora\Modules\Mail\Classes\Account &&
+				$oUser->PublicId === $oAccount->Email)
+			{
+				$iFilesQuotaUsage = $this->oApiMainManager->getUserFilesQuotaUsage($aArgs['UserId']);
+				//$iFilesQuotaUsage  value is in Bytes while $mResult[0]/*mail usage*/ value is in KBytes
+				$mResult[0] += ($iFilesQuotaUsage / self::QUOTA_KILO_MULTIPLIER);
+				$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['UserId']]);
+				$iTotalQuota =  isset($aUserQuotas[$aArgs['UserId']]) ? $aUserQuotas[$aArgs['UserId']] : 0;
+				$mResult[1] = $iTotalQuota;
+			}
 		}
 	}
 
