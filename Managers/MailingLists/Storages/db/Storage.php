@@ -44,14 +44,18 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\MailingLists\Storage
 	}
 	
 	/**
-	 * Obtains all mailing lists for specified tenant.
+	 * Obtains mailing lists with specified parameters.
 	 * @param int $iTenantId Tenant identifier.
+	 * @param int $iDomainId Domain identifier.
+	 * @param string $sSearch Search.
+	 * @param int $iOffset Offset.
+	 * @param int $iLimit Limit.
 	 * @return array|boolean
 	 */
-	public function getMailingLists($iTenantId)
+	public function getMailingLists($iTenantId = 0, $iDomainId = 0, $sSearch = '', $iOffset = 0, $iLimit = 0)
 	{
 		$mResult = false;
-		if ($this->oConnection->Execute($this->oCommandCreator->getMailingLists($iTenantId)))
+		if ($this->oConnection->Execute($this->oCommandCreator->getMailingLists($iTenantId, $iDomainId, $sSearch, $iOffset, $iLimit)))
 		{
 			$mResult = [];
 			while (false !== ($oRow = $this->oConnection->GetNextRecord()))
@@ -70,6 +74,31 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\MailingLists\Storage
 		$this->throwDbExceptionIfExist();
 		
 		return $mResult;
+	}
+	
+	/**
+	 * Obtains count of mailing lists with specified parameters.
+	 * @param int $iTenantId Tenant identifier.
+	 * @param int $iDomainId Domain identifier.
+	 * @param string $sSearch Search.
+	 * @return int
+	 */
+	public function getMailingListsCount($iTenantId = 0, $iDomainId = 0, $sSearch = '')
+	{
+		$iResult = 0;
+		if ($this->oConnection->Execute($this->oCommandCreator->getMailingListsCount($iTenantId, $iDomainId, $sSearch)))
+		{
+			$oRow = $this->oConnection->GetNextRecord();
+			if ($oRow)
+			{
+				$iResult = (int) $oRow->count;
+			}
+
+			$this->oConnection->FreeResult();
+		}
+
+		$this->throwDbExceptionIfExist();
+		return $iResult;
 	}
 	
 	/**

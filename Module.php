@@ -46,6 +46,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Core::CreateTables::after', array($this, 'onAfterCreateTables'));
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
+		$this->subscribeEvent('AdminPanelWebclient::GetEntityList::before', array($this, 'onBeforeGetEntityList'));
 		$this->subscribeEvent('Mail::ServerToResponseArray', array($this, 'onServerToResponseArray'));
 		$this->subscribeEvent('Core::AfterDeleteUser', array($this, 'onAfterDeleteUser'));
 		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
@@ -63,6 +64,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 			'Aurora\Modules\Mail\Classes\Server', 
 			array (
 				'Native' => array('bool', false),
+			)
+		);
+		$this->extendObject(
+			'Aurora\Modules\Core\Classes\User', 
+			array(
+				'DomainId' => array('int', 0),
 			)
 		);
 	}
@@ -752,9 +759,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/**
 	 * Obtains all mailing lists for specified tenant.
 	 * @param int $TenantId Tenant identifier.
+	 * @param int $DomainId Domain identifier.
+	 * @param string $Search Search.
+	 * @param int $Offset Offset.
+	 * @param int $Limit Limit.
 	 * @return array|boolean
 	 */
-	public function GetMailingLists($TenantId = 0)
+	public function GetMailingLists($TenantId = 0, $DomainId = 0, $Search = '', $Offset = 0, $Limit = 0)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		
@@ -762,11 +773,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			$TenantId = $this->getSingleDefaultTenantId();
 		}
-		$aMailingLists = $this->oApiMailingListsManager->getMailingLists($TenantId);
+		$aMailingLists = $this->oApiMailingListsManager->getMailingLists($TenantId, $DomainId, $Search, $Offset, $Limit);
 		if (is_array($aMailingLists))
 		{
 			return [
-				'Count' => count($aMailingLists),
+				'Count' => $this->oApiMailingListsManager->getMailingListsCount($TenantId, $DomainId, $Search),
 				'Items' => $aMailingLists
 			];
 		}
@@ -1023,13 +1034,16 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function onAfterCreateUser(&$aData, &$mResult)
 	{
 		$sEmail = isset($aData['PublicId']) ? $aData['PublicId'] : '';
-		$sDomainId = isset($aData['DomainId']) ? $aData['DomainId'] : '';
+		$iDomainId = isset($aData['DomainId']) ? $aData['DomainId'] : 0;
 		$sPassword = isset($aData['Password']) ? $aData['Password'] : '';
 		$sQuota = isset($aData['Quota']) ? $aData['Quota'] : null;
 		$oUser = \Aurora\System\Api::getUserById($mResult);
+		$oUser->{$this->GetName() . '::DomainId'} = $iDomainId;
+		$oCoreDecorator = \Aurora\Modules\Core\Module::Decorator();
+		$oCoreDecorator->UpdateUserObject($oUser);
 		if ($sEmail && $sPassword && $oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
-			$this->oApiMainManager->createAccount($sEmail, $sPassword, $oUser->EntityId, $sDomainId, $sQuota);
+			$this->oApiMainManager->createAccount($sEmail, $sPassword, $oUser->EntityId, $iDomainId, $sQuota);
 			\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
 		}
 	}
@@ -1040,6 +1054,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if ($oFetcher && $oFetcher->IdUser === $aArgs['UserId'])
 		{
 			$aArgs['Fetcher'] = $oFetcher;
+		}
+	}
+	
+	public function onBeforeGetEntityList(&$aArgs, &$mResult)
+	{
+		if ($aArgs['Type'] === 'User' && isset($aArgs['DomainId']) && $aArgs['DomainId'] !== 0)
+		{
+			$aArgs['Filters'] = [$this->GetName() . '::DomainId' => [$aArgs['DomainId'], '=']];
 		}
 	}
 

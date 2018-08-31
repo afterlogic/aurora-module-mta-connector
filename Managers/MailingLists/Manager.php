@@ -46,13 +46,29 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	}
 	
 	/**
-	 * Obtains all mailing lists for specified tenant.
+	 * Obtains mailing lists with specified parameters.
 	 * @param int $iTenantId Tenant identifier.
+	 * @param int $iDomainId Domain identifier.
+	 * @param string $sSearch Search.
+	 * @param int $iOffset Offset.
+	 * @param int $iLimit Limit.
 	 * @return array|boolean
 	 */
-	public function getMailingLists($iTenantId)
+	public function getMailingLists($iTenantId = 0, $iDomainId = 0, $sSearch = '', $iOffset = 0, $iLimit = 0)
 	{
-		return $this->oStorage->getMailingLists($iTenantId);
+		return $this->oStorage->getMailingLists($iTenantId, $iDomainId, $sSearch, $iOffset, $iLimit);
+	}
+	
+	/**
+	 * Obtains count of mailing lists with specified parameters.
+	 * @param int $iTenantId Tenant identifier.
+	 * @param int $iDomainId Domain identifier.
+	 * @param string $sSearch Search.
+	 * @return int
+	 */
+	public function getMailingListsCount($iTenantId = 0, $iDomainId = 0, $sSearch = '')
+	{
+		return $this->oStorage->getMailingListsCount($iTenantId, $iDomainId, $sSearch);
 	}
 	
 	/**

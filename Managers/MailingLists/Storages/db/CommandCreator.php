@@ -32,15 +32,55 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	}
 	
 	/**
-	 * Creates SQL-query to obtain all mailing lists for specified tenant.
+	 * Creates SQL-query to obtain mailing lists with specified parameters.
 	 * @param int $iTenantId Tenant identifier.
+	 * @param int $iDomainId Domain identifier.
+	 * @param string $sSearch Search.
+	 * @param int $iOffset Offset.
+	 * @param int $iLimit Limit.
 	 * @return string
 	 */
-	public function getMailingLists($iTenantId)
+	public function getMailingLists($iTenantId = 0, $iDomainId = 0, $sSearch = '', $iOffset = 0, $iLimit = 0)
 	{
-		$sSql = 'SELECT id_acct, email FROM awm_accounts WHERE id_tenant = %d';
+		$sWhere = '';
+		if ($iDomainId !== 0)
+		{
+			$sWhere .= sprintf(' AND id_domain = %d', $iDomainId);
+		}
+		if ($sSearch !== '')
+		{
+			$sWhere .= sprintf(' AND email LIKE %s', '\'%' . $this->escapeString($sSearch, true, true) . '%\'');
+		}
 		
-		return sprintf($sSql, $iTenantId);
+		$sSql = sprintf('SELECT id_acct, email FROM awm_accounts WHERE mailing_list = 1 AND id_tenant = %d', $iTenantId)
+				. $sWhere 
+				. sprintf(' LIMIT %d OFFSET %d', $iLimit, $iOffset);
+		
+		return $sSql;
+	}
+	
+	/**
+	 * Creates SQL-query to obtain count of mailing lists with specified parameters.
+	 * @param int $iTenantId Tenant identifier.
+	 * @param int $iDomainId Domain identifier.
+	 * @param string $sSearch Search.
+	 * @return string
+	 */
+	public function getMailingListsCount($iTenantId = 0, $iDomainId = 0, $sSearch = '')
+	{
+		$sWhere = '';
+		if ($iDomainId !== 0)
+		{
+			$sWhere .= sprintf(' AND id_domain = %d', $iDomainId);
+		}
+		if ($sSearch !== '')
+		{
+			$sWhere .= sprintf(' AND email LIKE %s', '\'%' . $this->escapeString($sSearch, true, true) . '%\'');
+		}
+		
+		$sSql = sprintf('SELECT COUNT(id_acct) as count FROM awm_accounts WHERE mailing_list = 1 AND id_tenant = %d', $iTenantId) . $sWhere;
+		
+		return $sSql;
 	}
 	
 	/**
