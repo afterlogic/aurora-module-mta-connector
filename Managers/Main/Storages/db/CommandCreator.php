@@ -151,43 +151,6 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 
 		return '';
 	}
-
-	public function updateFileQuotaUsage($UserId, $iUsage)
-	{
-		$sSql = 'UPDATE awm_account_quotas
-			LEFT JOIN awm_accounts ON awm_accounts.%s = awm_account_quotas.%s
-			SET %s=%d
-			WHERE awm_accounts.%s = %d';
-		return sprintf($sSql,
-			$this->escapeColumn('mail_inc_login'),
-			$this->escapeColumn('name'),
-			$this->escapeColumn('files_quota_usage_bytes'),
-			(int) $iUsage,
-			$this->escapeColumn('id_user'),
-			(int) $UserId
-		);
-	}
-
-	public function getUserFilesQuotaUsage($UserId)
-	{
-		if ($UserId)
-		{
-			$sSql = 'SELECT
-					awm_account_quotas.%s
-				FROM awm_account_quotas
-				LEFT JOIN awm_accounts ON awm_accounts.%s = awm_account_quotas.%s
-				WHERE awm_accounts.%s = %d';
-			return sprintf($sSql,
-				$this->escapeColumn('files_quota_usage_bytes'),
-				$this->escapeColumn('mail_inc_login'),
-				$this->escapeColumn('name'),
-				$this->escapeColumn('id_user'),
-				(int) $UserId
-			);
-		}
-
-		return '';
-	}
 }
 
 /**

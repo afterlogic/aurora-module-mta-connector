@@ -59,12 +59,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->oApiAliasesManager = new Managers\Aliases\Manager($this);
 		$this->oApiMailingListsManager = new Managers\MailingLists\Manager($this);
 		$this->oApiDomainsManager = new Managers\Domains\Manager($this);
-		
+
 		$this->extendObject(
 			'Aurora\Modules\Mail\Classes\Server', 
-			array (
+			[
 				'Native' => array('bool', false),
-			)
+			]
 		);
 		$this->extendObject(
 			'Aurora\Modules\Core\Classes\User', 
@@ -1136,9 +1136,8 @@ class Module extends \Aurora\System\Module\AbstractModule
 			//TotalQuota  value is in KBytes while FileUsage value is in Bytes
 			$iMailQuota = (int) ($iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER);
 			$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuota > 0 ? $iMailQuota : 1);
-			$this->oApiMainManager->updateFileQuotaUsage($aArgs['UserId'], $iFileUsage);
 			$mResult['Limit'] = $iTotalQuota * self::QUOTA_KILO_MULTIPLIER;
-			$mResult['Used'] += $iMailQuotaUsage;
+			$mResult['Used'] = $mResult['Used']  + $iMailQuotaUsage * self::QUOTA_KILO_MULTIPLIER;
 		}
 	}
 
@@ -1153,10 +1152,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$oUser->PublicId === $oAccount->Email)
 			{
 				$mResult = [];
-				$iFilesQuotaUsage = $this->oApiMainManager->getUserFilesQuotaUsage($aArgs['UserId']);
+				$iFilesQuotaUsage = (int) ($oUser->{'PersonalFiles::UsedSpace'} / self::QUOTA_KILO_MULTIPLIER);
 				$iMailQuotaUsage = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
-				//$iFilesQuotaUsage and $iMailQuotaUsage values is in Bytes while $mResult[0]/*total usage*/ value is in KBytes
-				$mResult[0] = (int) (($iFilesQuotaUsage + $iMailQuotaUsage) / self::QUOTA_KILO_MULTIPLIER);
+				$mResult[0] = $iFilesQuotaUsage + $iMailQuotaUsage;
 				$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['UserId']]);
 				$iTotalQuota =  isset($aUserQuotas[$aArgs['UserId']]) ? $aUserQuotas[$aArgs['UserId']] : 0;
 				$mResult[1] = $iTotalQuota;

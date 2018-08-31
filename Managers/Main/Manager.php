@@ -103,16 +103,6 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		return $this->oStorage->getUserMailQuotaUsage($UserId);
 	}
 
-	public function getUserFilesQuotaUsage($UserId)
-	{
-		return $this->oStorage->getUserFilesQuotaUsage($UserId);
-	}
-
-	public function updateFileQuotaUsage($UserId, $iUsage)
-	{
-		return $this->oStorage->updateFileQuotaUsage($UserId, $iUsage);
-	}
-
 	public static function EncodePassword($sPassword)
 	{
 		if (empty($sPassword))
