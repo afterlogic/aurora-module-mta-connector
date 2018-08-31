@@ -67,10 +67,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 			]
 		);
 		$this->extendObject(
-			'Aurora\Modules\Core\Classes\User', 
-			array(
+			'Aurora\Modules\Core\Classes\User',
+			[
 				'DomainId' => array('int', 0),
-			)
+				'TotalQuota' => array('bigint', 0),
+			]
 		);
 	}
 
@@ -985,12 +986,20 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$iResult = 0;
 		$oUser = \Aurora\System\Api::getAuthenticatedUser();
 		//Only owner or superadmin can get quota
-		if ($oUser instanceof \Aurora\Modules\Core\Classes\User &&
-			($oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin ||
-			$oUser->Role === \Aurora\System\Enums\UserRole::NormalUser && $oUser->EntityId === $UserId))
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
-			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$UserId]);
-			$iResult =  isset($aUserQuotas[$UserId]) ? $aUserQuotas[$UserId] : 0;
+			if ($oUser->Role === \Aurora\System\Enums\UserRole::NormalUser && $oUser->EntityId === $UserId)
+			{
+				$iResult = $oUser->{$this->GetName() . '::TotalQuota'};
+			}
+			else if ($oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin)
+			{
+				$oUser = \Aurora\System\Api::getUserById($UserId);
+				if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
+				{
+					$iResult = $oUser->{$this->GetName() . '::TotalQuota'};
+				}
+			}
 		}
 
 		return $iResult;
@@ -1043,7 +1052,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$oCoreDecorator->UpdateUserObject($oUser);
 		if ($sEmail && $sPassword && $oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
-			$this->oApiMainManager->createAccount($sEmail, $sPassword, $oUser->EntityId, $iDomainId, $sQuota);
+			$oUser->{$this->GetName() . '::TotalQuota'} = (int) $sQuota;
+			\Aurora\System\Managers\Eav::getInstance()->updateEntity($oUser);
+			$this->oApiMainManager->createAccount($sEmail, $sPassword, $oUser->EntityId, $iDomainId);
 			\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
 		}
 	}
@@ -1098,11 +1109,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User')
 		{
-			$aUserIds = array_map(function($aUser) { return $aUser['Id']; }, $mResult['Items']);
-			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas($aUserIds);
 			foreach ($mResult['Items'] as &$aUser)
 			{
-				$aUser['Quota'] = isset($aUserQuotas[$aUser['Id']]) ? $aUserQuotas[$aUser['Id']] : 0;
+				$oUser = \Aurora\System\Api::GetModuleDecorator('Core')->GetUser($aUser['Id']);
+				$aUser['Quota'] = $oUser instanceof \Aurora\Modules\Core\Classes\User ? $oUser->{$this->GetName() . '::TotalQuota'} : 0;
 			}
 		}
 	}
@@ -1112,14 +1122,18 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User' &&
 			isset($aArgs['Data']) && isset($aArgs['Data']['Id']) && isset($aArgs['Data']['Quota']))
 		{
-			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['Data']['Id']]);
-			$iUserOldTotalQuota =  isset($aUserQuotas[$aArgs['Data']['Id']]) ? $aUserQuotas[$aArgs['Data']['Id']] : 0;
-			$iDifference = $iUserOldTotalQuota - $aArgs['Data']['Quota'];
-			$this->oApiMainManager->updateUserTotalQuota($aArgs['Data']['Id'], $aArgs['Data']['Quota']);
-			//Update mail quota
-			$iMailQuota = $this->oApiMainManager->getUserMailQuota($aArgs['Data']['Id']);
-			$iNewMailQuota = $iMailQuota - $iDifference;
-			$this->oApiMainManager->updateUserMailQuota($aArgs['Data']['Id'], $iNewMailQuota > 0 ? $iNewMailQuota : 1);
+			$oUser = \Aurora\System\Api::getUserById($aArgs['Data']['Id']);
+			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
+			{
+				$iUserOldTotalQuota = $oUser->{$this->GetName() . '::TotalQuota'};
+				$iDifference = $iUserOldTotalQuota - (int) $aArgs['Data']['Quota'];
+				$oUser->{$this->GetName() . '::TotalQuota'} = (int) $aArgs['Data']['Quota'];
+				\Aurora\System\Managers\Eav::getInstance()->updateEntity($oUser);
+				//Update mail quota
+				$iMailQuota = $this->oApiMainManager->getUserMailQuota($aArgs['Data']['Id']);
+				$iNewMailQuota = $iMailQuota - $iDifference;
+				$this->oApiMainManager->updateUserMailQuota($aArgs['Data']['Id'], $iNewMailQuota > 0 ? $iNewMailQuota : 1);
+			}
 		}
 	}
 
@@ -1129,15 +1143,18 @@ class Module extends \Aurora\System\Module\AbstractModule
 		//TODO: update mail quota and file usage after file uploaded/deleted
 		if (isset($aArgs['UserId']) && isset($mResult['Used']))
 		{
-			$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['UserId']]);
-			$iTotalQuota =  isset($aUserQuotas[$aArgs['UserId']]) ? $aUserQuotas[$aArgs['UserId']] : 0;
-			$iFileUsage = $mResult['Used'];
-			$iMailQuotaUsage = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
-			//TotalQuota  value is in KBytes while FileUsage value is in Bytes
-			$iMailQuota = (int) ($iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER);
-			$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuota > 0 ? $iMailQuota : 1);
-			$mResult['Limit'] = $iTotalQuota * self::QUOTA_KILO_MULTIPLIER;
-			$mResult['Used'] = $mResult['Used']  + $iMailQuotaUsage * self::QUOTA_KILO_MULTIPLIER;
+			$oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
+			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
+			{
+				$iTotalQuota =  $oUser->{$this->GetName() . '::TotalQuota'};
+				$iFileUsage = $mResult['Used'];
+				$iMailQuotaUsage = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
+				//TotalQuota  value is in KBytes while FileUsage value is in Bytes
+				$iMailQuota = (int) ($iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER);
+				$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuota > 0 ? $iMailQuota : 1);
+				$mResult['Limit'] = $iTotalQuota * self::QUOTA_KILO_MULTIPLIER;
+				$mResult['Used'] = $mResult['Used']  + $iMailQuotaUsage * self::QUOTA_KILO_MULTIPLIER;
+			}
 		}
 	}
 
@@ -1155,9 +1172,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$iFilesQuotaUsage = (int) ($oUser->{'PersonalFiles::UsedSpace'} / self::QUOTA_KILO_MULTIPLIER);
 				$iMailQuotaUsage = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
 				$mResult[0] = $iFilesQuotaUsage + $iMailQuotaUsage;
-				$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['UserId']]);
-				$iTotalQuota =  isset($aUserQuotas[$aArgs['UserId']]) ? $aUserQuotas[$aArgs['UserId']] : 0;
-				$mResult[1] = $iTotalQuota;
+				$mResult[1] = $oUser->{$this->GetName() . '::TotalQuota'};
 
 				return true;
 			}

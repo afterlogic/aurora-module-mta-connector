@@ -23,9 +23,9 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		parent::__construct($oModule, new \Aurora\Modules\MtaConnector\Managers\Main\Storages\db\Storage($this));
 	}
 
-	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId, $iQuota = 0)
+	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId)
 	{
-		return $this->oStorage->createAccount($sEmail, self::EncodePassword($sPassword), $iUserId, $iDomainId, $iQuota);
+		return $this->oStorage->createAccount($sEmail, self::EncodePassword($sPassword), $iUserId, $iDomainId);
 	}
 	
 	public function updateAccountPassword($sEmail, $sPassword, $sNewPassword)
@@ -50,29 +50,6 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		$bResult = \Aurora\System\Managers\Db::getInstance()->executeSqlFile($sFilePath);
 		
 		return $bResult;
-	}
-
-	/**
-	 * Return array of users quota
-	 *
-	 * @param array $aUserIds
-	 * @return array
-	 */
-	public function getUserTotalQuotas($aUserIds)
-	{
-		return $this->oStorage->getUserTotalQuotas($aUserIds);
-	}
-
-	/**
-	 * Update user total quota
-	 *
-	 * @param int $UserId
-	 * @param int $iQuota
-	 * @return bool
-	 */
-	public function updateUserTotalQuota($UserId, $iQuota)
-	{
-		return $this->oStorage->updateUserTotalQuota($UserId, $iQuota);
 	}
 
 	/**

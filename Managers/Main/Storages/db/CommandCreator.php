@@ -19,21 +19,19 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	 * 
 	 * @return string
 	 */
-	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId, $iQuota)
+	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId)
 	{
 		if (!empty($sEmail) && !empty($sPassword))
 		{
-			$sSql = "INSERT INTO awm_accounts ( %s, %s, %s, %s, %s ) VALUES ( %s, %s, %d, %d, %d )";
+			$sSql = "INSERT INTO awm_accounts ( %s, %s, %s, %s ) VALUES ( %s, %s, %d, %d )";
 			return sprintf($sSql,
 				$this->escapeColumn('mail_inc_login'),
 				$this->escapeColumn('mail_inc_pass'),
 				$this->escapeColumn('id_user'),
-				$this->escapeColumn('total_quota'),
 				$this->escapeColumn('id_domain'),
 				$this->escapeString($sEmail),
 				$this->escapeString($sPassword),
 				(int) $iUserId,
-				(int) $iQuota,
 				(int) $iDomainId
 			);
 		}
@@ -76,33 +74,6 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		}
 
 		return '';
-	}
-
-	public function getUserTotalQuotas($aUserIds)
-	{
-		if (is_array($aUserIds) && !empty($aUserIds))
-		{
-			$sSql = 'SELECT %s, %s FROM awm_accounts WHERE %s IN (%s)';
-			return sprintf($sSql,
-				$this->escapeColumn('id_user'),
-				$this->escapeColumn('total_quota'),
-				$this->escapeColumn('id_user'),
-				implode(',', array_map(function($UserId) { return (int) $UserId; }, $aUserIds))
-			);
-		}
-
-		return '';
-	}
-
-	public function updateUserTotalQuota($UserId, $iQuota)
-	{
-		$sSql = 'UPDATE awm_accounts SET %s=%d WHERE %s = %d';
-		return sprintf($sSql,
-			$this->escapeColumn('total_quota'),
-			(int) $iQuota,
-			$this->escapeColumn('id_user'),
-			(int) $UserId
-		);
 	}
 
 	public function updateUserMailQuota($UserId, $iQuota)

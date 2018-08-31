@@ -34,10 +34,10 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 	 *
 	 * @return bool
 	 */
-	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId, $iQuota)
+	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId)
 	{
 		$bResult = false;
-		if ($this->oConnection->Execute($this->oCommandCreator->createAccount($sEmail, $sPassword, $iUserId, $iDomainId, $iQuota)))
+		if ($this->oConnection->Execute($this->oCommandCreator->createAccount($sEmail, $sPassword, $iUserId, $iDomainId)))
 		{
 			$AccountId = $this->oConnection->GetLastInsertId('awm_accounts', 'id_acct');
 			$bResult = true;
@@ -57,31 +57,6 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 	public function deleteAccount($sEmail)
 	{
 		$bResult = $this->oConnection->Execute($this->oCommandCreator->deleteAccountByEmail($sEmail));
-		$this->throwDbExceptionIfExist();
-		return $bResult;
-	}
-
-	public function getUserTotalQuotas($aUserIds)
-	{
-		$mResult = [];
-		if ($this->oConnection->Execute($this->oCommandCreator->getUserTotalQuotas($aUserIds)))
-		{
-			while (false !== ($oRow = $this->oConnection->GetNextRecord()))
-			{
-				if ($oRow)
-				{
-					$mResult[$oRow->id_user] = $oRow->total_quota;
-				}
-			}
-		}
-		$this->throwDbExceptionIfExist();
-
-		return $mResult;
-	}
-
-	public function updateUserTotalQuota($UserId, $iQuota)
-	{
-		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateUserTotalQuota($UserId, $iQuota));
 		$this->throwDbExceptionIfExist();
 		return $bResult;
 	}
