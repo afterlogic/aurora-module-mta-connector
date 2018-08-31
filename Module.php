@@ -52,7 +52,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
 		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
 		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
-		$this->subscribeEvent('Mail::GetQuota::after', array($this, 'onAfterGetQuotaMail'), 110);
+		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -1134,7 +1134,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$iFileUsage = $mResult['Used'];
 			$iMailQuotaUsage = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
 			//TotalQuota  value is in KBytes while FileUsage value is in Bytes
-			$iMailQuota = $iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER;
+			$iMailQuota = (int) ($iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER);
 			$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuota > 0 ? $iMailQuota : 1);
 			$this->oApiMainManager->updateFileQuotaUsage($aArgs['UserId'], $iFileUsage);
 			$mResult['Limit'] = $iTotalQuota * self::QUOTA_KILO_MULTIPLIER;
@@ -1142,7 +1142,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 
-	public function onAfterGetQuotaMail($aArgs, &$mResult)
+	public function onBeforeGetQuotaMail($aArgs, &$mResult)
 	{
 		if (isset($aArgs['UserId']) && isset($aArgs['AccountID']))
 		{
@@ -1152,12 +1152,16 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$oAccount instanceof \Aurora\Modules\Mail\Classes\Account &&
 				$oUser->PublicId === $oAccount->Email)
 			{
+				$mResult = [];
 				$iFilesQuotaUsage = $this->oApiMainManager->getUserFilesQuotaUsage($aArgs['UserId']);
-				//$iFilesQuotaUsage  value is in Bytes while $mResult[0]/*mail usage*/ value is in KBytes
-				$mResult[0] += ($iFilesQuotaUsage / self::QUOTA_KILO_MULTIPLIER);
+				$iMailQuotaUsage = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
+				//$iFilesQuotaUsage and $iMailQuotaUsage values is in Bytes while $mResult[0]/*total usage*/ value is in KBytes
+				$mResult[0] = (int) (($iFilesQuotaUsage + $iMailQuotaUsage) / self::QUOTA_KILO_MULTIPLIER);
 				$aUserQuotas = $this->oApiMainManager->getUserTotalQuotas([$aArgs['UserId']]);
 				$iTotalQuota =  isset($aUserQuotas[$aArgs['UserId']]) ? $aUserQuotas[$aArgs['UserId']] : 0;
 				$mResult[1] = $iTotalQuota;
+
+				return true;
 			}
 		}
 	}
