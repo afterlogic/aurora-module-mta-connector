@@ -61,9 +61,9 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 		return $bResult;
 	}
 
-	public function updateUserMailQuota($UserId, $iQuota)
+	public function updateUserMailQuota($UserId, $iQuotaKb)
 	{
-		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateUserMailQuota($UserId, $iQuota));
+		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateUserMailQuota($UserId, $iQuotaKb));
 		$this->throwDbExceptionIfExist();
 		return $bResult;
 	}

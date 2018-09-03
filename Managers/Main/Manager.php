@@ -59,9 +59,9 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	 * @param int $iQuota
 	 * @return bool
 	 */
-	public function updateUserMailQuota($UserId, $iQuota)
+	public function updateUserMailQuota($UserId, $iQuotaKb)
 	{
-		return $this->oStorage->updateUserMailQuota($UserId, $iQuota);
+		return $this->oStorage->updateUserMailQuota($UserId, $iQuotaKb);
 	}
 
 	/**

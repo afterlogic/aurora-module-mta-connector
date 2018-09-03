@@ -76,12 +76,12 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		return '';
 	}
 
-	public function updateUserMailQuota($UserId, $iQuota)
+	public function updateUserMailQuota($UserId, $iQuotaKb)
 	{
 		$sSql = 'UPDATE awm_accounts SET %s=%d WHERE %s = %d';
 		return sprintf($sSql,
 			$this->escapeColumn('mail_quota'),
-			(int) $iQuota,
+			(int) $iQuotaKb,
 			$this->escapeColumn('id_user'),
 			(int) $UserId
 		);

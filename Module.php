@@ -70,7 +70,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			'Aurora\Modules\Core\Classes\User',
 			[
 				'DomainId' => array('int', 0),
-				'TotalQuota' => array('bigint', 0),
+				'TotalQuota' => array('bigint', 0),//bytes
 			]
 		);
 	}
@@ -1125,14 +1125,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oUser = \Aurora\System\Api::getUserById($aArgs['Data']['Id']);
 			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 			{
-				$iUserOldTotalQuota = $oUser->{$this->GetName() . '::TotalQuota'};
-				$iDifference = $iUserOldTotalQuota - (int) $aArgs['Data']['Quota'];
 				$oUser->{$this->GetName() . '::TotalQuota'} = (int) $aArgs['Data']['Quota'];
 				\Aurora\System\Managers\Eav::getInstance()->updateEntity($oUser);
 				//Update mail quota
-				$iMailQuota = $this->oApiMainManager->getUserMailQuota($aArgs['Data']['Id']);
-				$iNewMailQuota = $iMailQuota - $iDifference;
-				$this->oApiMainManager->updateUserMailQuota($aArgs['Data']['Id'], $iNewMailQuota > 0 ? $iNewMailQuota : 1);
+				$iTotalQuota =  $oUser->{$this->GetName() . '::TotalQuota'};
+				$iFileUsage = $oUser->{'PersonalFiles::UsedSpace'};
+				$iMailQuotaKb = (int) (($iTotalQuota - $iFileUsage) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
+				$this->oApiMainManager->updateUserMailQuota($aArgs['Data']['Id'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 1);
 			}
 		}
 	}
@@ -1140,7 +1139,6 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function onAfterGetQuotaFiles($aArgs, &$mResult)
 	{
 		//We get the used space of the file quota, take its value from the total quota and write result in the mail quota
-		//TODO: update mail quota and file usage after file uploaded/deleted
 		if (isset($aArgs['UserId']) && isset($mResult['Used']))
 		{
 			$oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
@@ -1149,11 +1147,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$iTotalQuota =  $oUser->{$this->GetName() . '::TotalQuota'};
 				$iFileUsage = $mResult['Used'];
 				$iMailQuotaUsage = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
-				//TotalQuota  value is in KBytes while FileUsage value is in Bytes
-				$iMailQuota = (int) ($iTotalQuota - $iFileUsage / self::QUOTA_KILO_MULTIPLIER);
-				$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuota > 0 ? $iMailQuota : 1);
-				$mResult['Limit'] = $iTotalQuota * self::QUOTA_KILO_MULTIPLIER;
-				$mResult['Used'] = $mResult['Used']  + $iMailQuotaUsage * self::QUOTA_KILO_MULTIPLIER;
+				$iMailQuotaKb = (int) (($iTotalQuota - $iFileUsage) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
+				$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 1);
+				$mResult['Limit'] = $iTotalQuota;
+				$mResult['Used'] = $mResult['Used']  + $iMailQuotaUsage;
 			}
 		}
 	}
@@ -1169,10 +1166,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$oUser->PublicId === $oAccount->Email)
 			{
 				$mResult = [];
-				$iFilesQuotaUsage = (int) ($oUser->{'PersonalFiles::UsedSpace'} / self::QUOTA_KILO_MULTIPLIER);
+				$iFilesQuotaUsage = $oUser->{'PersonalFiles::UsedSpace'};
 				$iMailQuotaUsage = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
-				$mResult[0] = $iFilesQuotaUsage + $iMailQuotaUsage;
-				$mResult[1] = $oUser->{$this->GetName() . '::TotalQuota'};
+				$mResult[0] = (int) (($iFilesQuotaUsage + $iMailQuotaUsage) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
+				$mResult[1] = (int) ($oUser->{$this->GetName() . '::TotalQuota'} / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
 
 				return true;
 			}
