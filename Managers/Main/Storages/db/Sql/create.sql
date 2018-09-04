@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS `awm_accounts` (
 	`id_tenant` INT(11) NOT NULL DEFAULT '0',
 	`deleted` TINYINT(1) NOT NULL DEFAULT '0',
 	`mail_quota` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
-	`total_quota` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
 	`email` VARCHAR(255) NOT NULL DEFAULT '',
 	`mail_inc_login` VARCHAR(255) NULL DEFAULT NULL,
 	`mail_inc_pass` VARCHAR(255) NULL DEFAULT NULL,
@@ -23,7 +22,6 @@ ENGINE=InnoDB;
 CREATE TABLE IF NOT EXISTS `awm_account_quotas` (
 	`name` VARCHAR(100) NOT NULL DEFAULT '',
 	`mail_quota_usage_bytes` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
-	`files_quota_usage_bytes` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
 	`quota_usage_messages` INT(10) UNSIGNED NOT NULL DEFAULT '0',
 	INDEX `AWM_ACCOUNT_QUOTAS_NAME_INDEX` (`name`)
 )
