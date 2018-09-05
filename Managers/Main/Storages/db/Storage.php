@@ -32,19 +32,19 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 
 	/**
 	 *
-	 * @return bool
+	 * @return bool|int
 	 */
 	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId)
 	{
-		$bResult = false;
+		$mResult = false;
 		if ($this->oConnection->Execute($this->oCommandCreator->createAccount($sEmail, $sPassword, $iUserId, $iDomainId)))
 		{
 			$AccountId = $this->oConnection->GetLastInsertId('awm_accounts', 'id_acct');
-			$bResult = true;
+			$mResult = $AccountId;
 		}
 
 		$this->throwDbExceptionIfExist();
-		return $bResult;
+		return $mResult;
 	}
 	
 	public function updateAccountPassword($sEmail, $sPassword, $sNewPassword)

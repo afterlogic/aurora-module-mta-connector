@@ -70,7 +70,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			'Aurora\Modules\Core\Classes\User',
 			[
 				'DomainId' => array('int', 0),
-				'TotalQuota' => array('bigint', 0),//bytes
+				'TotalQuota' => array('bigint', 1),//bytes
 			]
 		);
 	}
@@ -1054,8 +1054,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			$oUser->{$this->GetName() . '::TotalQuota'} = (int) $sQuota;
 			\Aurora\System\Managers\Eav::getInstance()->updateEntity($oUser);
-			$this->oApiMainManager->createAccount($sEmail, $sPassword, $oUser->EntityId, $iDomainId);
-			\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
+			$mResult = $this->oApiMainManager->createAccount($sEmail, $sPassword, $oUser->EntityId, $iDomainId);
+			if ($mResult)
+			{
+				$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuota / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
+				\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
+			}
 		}
 	}
 
