@@ -80,7 +80,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	{
 		$sSql = 'UPDATE awm_accounts SET %s=%d WHERE %s = %d';
 		return sprintf($sSql,
-			$this->escapeColumn('mail_quota'),
+			$this->escapeColumn('mail_quota_kb'),
 			(int) $iQuotaKb,
 			$this->escapeColumn('id_user'),
 			(int) $UserId
@@ -93,7 +93,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		{
 			$sSql = 'SELECT %s FROM awm_accounts WHERE %s = %s';
 			return sprintf($sSql,
-				$this->escapeColumn('mail_quota'),
+				$this->escapeColumn('mail_quota_kb'),
 				$this->escapeColumn('id_user'),
 				(int) $UserId
 			);

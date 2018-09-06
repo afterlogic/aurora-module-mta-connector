@@ -76,7 +76,7 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 			$oRow = $this->oConnection->GetNextRecord();
 			if ($oRow)
 			{
-				$iMailQuota = (int) $oRow->mail_quota;
+				$iMailQuota = (int) $oRow->mail_quota_kb;
 			}
 			$this->oConnection->FreeResult();
 		}
