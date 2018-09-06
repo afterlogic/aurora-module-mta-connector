@@ -86,7 +86,7 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Domains\Storages\Def
 			{
 				$mResult = [
 					'Name' => $oRow->name,
-					'Count' => is_int($oRow->count) ? $oRow->count : 0
+					'Count' => (int) $oRow->count
 				];
 			}
 		}
