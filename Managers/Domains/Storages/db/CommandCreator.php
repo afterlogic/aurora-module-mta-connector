@@ -35,16 +35,15 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	 */
 	public function getDomains($iTenantId)
 	{
-		$sSql = 'SELECT awm_domains.id_domain, awm_domains.name, temp.count
-				FROM awm_domains
-				LEFT JOIN
-				(SELECT awm_accounts.id_domain AS id_domain, COUNT(awm_accounts.id_user) AS count
-				FROM awm_accounts
-				WHERE mailing_list = 0
-				GROUP BY awm_accounts.id_domain)
-				temp ON temp.id_domain = awm_domains.id_domain
-				WHERE awm_domains.id_tenant = %d';
-		
+		$sSql = 'SELECT
+				awm_domains.id_domain,
+				awm_domains.name,
+				COUNT(awm_accounts.id_acct) AS count
+			FROM awm_domains
+			LEFT JOIN awm_accounts ON awm_accounts.id_domain = awm_domains.id_domain
+			WHERE awm_domains.id_tenant = %d
+			GROUP BY awm_domains.id_domain';
+
 		return sprintf($sSql, $iTenantId);
 	}
 	

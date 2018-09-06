@@ -60,7 +60,7 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Domains\Storages\Def
 					$mResult[] = [
 						'Id' => $oRow->id_domain,
 						'Name' => $oRow->name,
-						'Count' => is_int($oRow->count) ? $oRow->count : 0
+						'Count' => (int) $oRow->count
 					];
 				}
 			}
