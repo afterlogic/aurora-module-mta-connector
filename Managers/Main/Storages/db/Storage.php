@@ -56,7 +56,8 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 
 	public function deleteAccount($sEmail)
 	{
-		$bResult = $this->oConnection->Execute($this->oCommandCreator->deleteAccountByEmail($sEmail));
+		$bResult = $this->oConnection->Execute($this->oCommandCreator->deleteAccountByEmail($sEmail)) &&
+			$this->oConnection->Execute($this->oCommandCreator->deleteAccountQuotaUsageByEmail($sEmail));
 		$this->throwDbExceptionIfExist();
 		return $bResult;
 	}

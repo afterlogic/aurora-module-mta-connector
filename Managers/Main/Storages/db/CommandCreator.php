@@ -60,6 +60,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 
 	/**
 	 *
+	 * @param string $sEmail
 	 * @return string
 	 */
 	public function deleteAccountByEmail($sEmail)
@@ -69,6 +70,25 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 			$sSql = 'DELETE FROM awm_accounts WHERE %s = %s';
 			return sprintf($sSql,
 				$this->escapeColumn('mail_inc_login'),
+				$this->escapeString($sEmail)
+			);
+		}
+
+		return '';
+	}
+
+	/**
+	 *
+	 * @param string $sEmail
+	 * @return string
+	 */
+	public function deleteAccountQuotaUsageByEmail($sEmail)
+	{
+		if (!empty($sEmail))
+		{
+			$sSql = 'DELETE FROM awm_account_quotas WHERE %s = %s';
+			return sprintf($sSql,
+				$this->escapeColumn('name'),
 				$this->escapeString($sEmail)
 			);
 		}
