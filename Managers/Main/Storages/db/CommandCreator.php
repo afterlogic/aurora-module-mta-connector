@@ -76,6 +76,12 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		return '';
 	}
 
+	/**
+	 *
+	 * @param int $UserId
+	 * @param int $iQuotaKb
+	 * @return string
+	 */
 	public function updateUserMailQuota($UserId, $iQuotaKb)
 	{
 		$sSql = 'UPDATE awm_accounts SET %s=%d WHERE %s = %d';
@@ -87,6 +93,11 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		);
 	}
 
+	/**
+	 *
+	 * @param int $UserId
+	 * @return string
+	 */
 	public function getUserMailQuota($UserId)
 	{
 		if ($UserId)
@@ -102,6 +113,11 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		return '';
 	}
 
+	/**
+	 *
+	 * @param int $UserId
+	 * @return string
+	 */
 	public function getUserMailQuotaUsage($UserId)
 	{
 		if ($UserId)

@@ -61,6 +61,12 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 		return $bResult;
 	}
 
+	/**
+	 *
+	 * @param int $UserId
+	 * @param int $iQuotaKb
+	 * @return boolean
+	 */
 	public function updateUserMailQuota($UserId, $iQuotaKb)
 	{
 		$bResult = $this->oConnection->Execute($this->oCommandCreator->updateUserMailQuota($UserId, $iQuotaKb));
@@ -68,37 +74,49 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 		return $bResult;
 	}
 
+	/**
+	 * Return user mail quota in KB
+	 *
+	 * @param int $UserId
+	 * @return int
+	 */
 	public function getUserMailQuota($UserId)
 	{
-		$iMailQuota = 0;
+		$iMailQuotaKB = 0;
 		if ($this->oConnection->Execute($this->oCommandCreator->getUserMailQuota($UserId)))
 		{
 			$oRow = $this->oConnection->GetNextRecord();
 			if ($oRow)
 			{
-				$iMailQuota = (int) $oRow->mail_quota_kb;
+				$iMailQuotaKB = (int) $oRow->mail_quota_kb;
 			}
 			$this->oConnection->FreeResult();
 		}
 		$this->throwDbExceptionIfExist();
 
-		return $iMailQuota;
+		return $iMailQuotaKB;
 	}
 
+	/**
+	 * Return user mail quota usage in bytes
+	 *
+	 * @param int $UserId
+	 * @return int
+	 */
 	public function getUserMailQuotaUsage($UserId)
 	{
-		$iMailQuotaUsage = 0;
+		$iMailQuotaUsageBytes = 0;
 		if ($this->oConnection->Execute($this->oCommandCreator->getUserMailQuotaUsage($UserId)))
 		{
 			$oRow = $this->oConnection->GetNextRecord();
 			if ($oRow)
 			{
-				$iMailQuotaUsage = (int) $oRow->mail_quota_usage_bytes;
+				$iMailQuotaUsageBytes = (int) $oRow->mail_quota_usage_bytes;
 			}
 			$this->oConnection->FreeResult();
 		}
 		$this->throwDbExceptionIfExist();
 
-		return $iMailQuotaUsage;
+		return $iMailQuotaUsageBytes;
 	}
 }

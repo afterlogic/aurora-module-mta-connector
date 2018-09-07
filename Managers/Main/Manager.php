@@ -56,7 +56,7 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	 * Update user mail quota
 	 *
 	 * @param int $UserId
-	 * @param int $iQuota
+	 * @param int $iQuotaKb
 	 * @return bool
 	 */
 	public function updateUserMailQuota($UserId, $iQuotaKb)
@@ -65,7 +65,7 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	}
 
 	/**
-	 * Return user mail quota
+	 * Return user mail quota in KB
 	 *
 	 * @param $UserId
 	 * @return int
@@ -75,6 +75,12 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		return $this->oStorage->getUserMailQuota($UserId);
 	}
 
+	/**
+	 * Return user mail quota usage in Bytes
+	 *
+	 * @param $UserId
+	 * @return int
+	 */
 	public function getUserMailQuotaUsage($UserId)
 	{
 		return $this->oStorage->getUserMailQuotaUsage($UserId);
