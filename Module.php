@@ -978,7 +978,18 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public function UpdateAccountPassword($Email, $Password, $NewPassword)
 	{
-		return $this->oApiMainManager->updateAccountPassword($Email, $Password, $NewPassword);
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User &&
+			(($oUser->Role === \Aurora\System\Enums\UserRole::NormalUser && $oUser->PublicId === $Email) ||
+			$oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin)
+		)
+		{
+			return $this->oApiMainManager->updateAccountPassword($Email, $Password, $NewPassword);
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	public function GetUserQuota($UserId)
@@ -1121,21 +1132,33 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 
-	public function onAfterUpdateEntity($aArgs, &$mResult)
+	public function onAfterUpdateEntity($aArgs, &$mResult, &$mSubscriptionResult)
 	{
-		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User' &&
-			isset($aArgs['Data']) && isset($aArgs['Data']['Id']) && isset($aArgs['Data']['QuotaBytes']))
+		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User' && isset($aArgs['Data']) && isset($aArgs['Data']['Id']))
 		{
 			$oUser = \Aurora\System\Api::getUserById($aArgs['Data']['Id']);
 			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 			{
-				$oUser->{$this->GetName() . '::TotalQuotaBytes'} = (int) $aArgs['Data']['QuotaBytes'];
-				\Aurora\System\Managers\Eav::getInstance()->updateEntity($oUser);
-				//Update mail quota
-				$iTotalQuotaBytes =  $oUser->{$this->GetName() . '::TotalQuotaBytes'};
-				$iFileUsageBytes = $oUser->{'PersonalFiles::UsedSpace'};
-				$iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
-				$this->oApiMainManager->updateUserMailQuota($aArgs['Data']['Id'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 1);
+				//Update quota
+				if(isset($aArgs['Data']['QuotaBytes']))
+				{
+					$oUser->{$this->GetName() . '::TotalQuotaBytes'} = (int) $aArgs['Data']['QuotaBytes'];
+					\Aurora\System\Managers\Eav::getInstance()->updateEntity($oUser);
+					//Update mail quota
+					$iTotalQuotaBytes =  $oUser->{$this->GetName() . '::TotalQuotaBytes'};
+					$iFileUsageBytes = $oUser->{'PersonalFiles::UsedSpace'};
+					$iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
+					$this->oApiMainManager->updateUserMailQuota($aArgs['Data']['Id'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 1);
+				}
+				//Update password
+				if(isset($aArgs['Data']['Password']) && trim($aArgs['Data']['Password']) !== '')
+				{
+					$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId);
+					if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account)
+					{
+						$mSubscriptionResult = (bool) \Aurora\System\Api::GetModuleDecorator('Mail')->ChangePassword($oAccount->EntityId, $oAccount->IncomingPassword, \trim($aArgs['Data']['Password']));
+					}
+				}
 			}
 		}
 	}
