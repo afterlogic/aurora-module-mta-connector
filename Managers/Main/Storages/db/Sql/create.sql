@@ -49,18 +49,6 @@ CREATE TABLE IF NOT EXISTS `awm_mailaliases` (
 COLLATE='utf8_general_ci'
 ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `awm_mailforwards` (
-	`id` INT(11) NOT NULL AUTO_INCREMENT,
-	`id_acct` INT(11) NULL DEFAULT NULL,
-	`forward_name` VARCHAR(255) NOT NULL DEFAULT '',
-	`forward_domain` VARCHAR(255) NOT NULL DEFAULT '',
-	`forward_to` VARCHAR(255) NOT NULL DEFAULT '',
-	PRIMARY KEY (`id`),
-	INDEX `AWM_MAILFORWARDS_ID_ACCT_INDEX` (`id_acct`)
-)
-COLLATE='utf8_general_ci'
-ENGINE=InnoDB;
-
 CREATE TABLE IF NOT EXISTS `awm_mailinglists` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`id_acct` INT(11) NULL DEFAULT NULL,
