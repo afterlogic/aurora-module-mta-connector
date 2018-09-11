@@ -978,18 +978,19 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public function UpdateAccountPassword($Email, $Password, $NewPassword)
 	{
+		$bResult = false;
+
 		$oUser = \Aurora\System\Api::getAuthenticatedUser();
 		if ($oUser instanceof \Aurora\Modules\Core\Classes\User &&
 			(($oUser->Role === \Aurora\System\Enums\UserRole::NormalUser && $oUser->PublicId === $Email) ||
 			$oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin)
 		)
 		{
-			return $this->oApiMainManager->updateAccountPassword($Email, $Password, $NewPassword);
+			$bResult = $this->oApiMainManager->updateAccountPassword($Email, $Password, $NewPassword);
 		}
-		else
-		{
-			return false;
-		}
+
+		return $bResult;
+
 	}
 
 	public function GetUserQuota($UserId)
