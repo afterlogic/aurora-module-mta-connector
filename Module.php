@@ -1157,7 +1157,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 					$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId);
 					if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account)
 					{
-						$mSubscriptionResult = (bool) \Aurora\System\Api::GetModuleDecorator('Mail')->ChangePassword($oAccount->EntityId, $oAccount->IncomingPassword, \trim($aArgs['Data']['Password']));
+						$mSubscriptionResult = (bool) \Aurora\System\Api::GetModuleDecorator('Mail')->ChangePassword($oAccount->EntityId, $oAccount->getPassword(), \trim($aArgs['Data']['Password']));
 					}
 				}
 			}
