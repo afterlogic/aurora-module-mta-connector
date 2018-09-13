@@ -130,7 +130,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	 */
 	public function getMailingListMembers($iListId)
 	{
-		$sSql = 'SELECT list_name FROM awm_mailinglists WHERE id_acct = %d';
+		$sSql = 'SELECT list_to FROM awm_mailinglists WHERE id_acct = %d';
 		
 		return sprintf($sSql, $iListId);
 	}

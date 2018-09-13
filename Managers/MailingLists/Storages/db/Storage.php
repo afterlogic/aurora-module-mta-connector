@@ -166,7 +166,7 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\MailingLists\Storage
 			{
 				if ($oRow)
 				{
-					$mResult[] = $oRow->list_name;
+					$mResult[] = $oRow->list_to;
 				}
 			}
 		}
