@@ -817,16 +817,16 @@ class Module extends \Aurora\System\Module\AbstractModule
 	/**
 	 * Adds new member to mailing list.
 	 * @param int $ListId Mailing list identifier.
-	 * @param string $ListName Email of mailing list.
+	 * @param string $ListTo Email of mailing list.
 	 * @return boolean
 	 */
-	public function AddMailingListMember($ListId, $ListName)
+	public function AddMailingListMember($ListId, $ListTo)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		
-		$sListTo = $this->oApiMailingListsManager->getMailingListEmail($ListId);
+		$sListName = $this->oApiMailingListsManager->getMailingListEmail($ListId);
 		
-		return $this->oApiMailingListsManager->addMember($ListId, $ListName, $sListTo);
+		return $this->oApiMailingListsManager->addMember($ListId, $sListName, $ListTo);
 	}
 	
 	/**
