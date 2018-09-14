@@ -1141,7 +1141,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 			{
 				//Update quota
-				if(isset($aArgs['Data']['QuotaBytes']))
+				if (isset($aArgs['Data']['QuotaBytes']))
 				{
 					$oUser->{$this->GetName() . '::TotalQuotaBytes'} = (int) $aArgs['Data']['QuotaBytes'];
 					\Aurora\System\Managers\Eav::getInstance()->updateEntity($oUser);
@@ -1152,16 +1152,21 @@ class Module extends \Aurora\System\Module\AbstractModule
 					$this->oApiMainManager->updateUserMailQuota($aArgs['Data']['Id'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 1);
 				}
 				//Update password
-				if(isset($aArgs['Data']['Password']) && trim($aArgs['Data']['Password']) !== '')
+				if (isset($aArgs['Data']['Password']) && trim($aArgs['Data']['Password']) !== '')
 				{
 					$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId);
 					if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account)
 					{
-						$mSubscriptionResult = (bool) \Aurora\System\Api::GetModuleDecorator('Mail')->ChangePassword($oAccount->EntityId, $oAccount->getPassword(), \trim($aArgs['Data']['Password']));
+						$mSubscriptionResult['IsPasswordChanged'] = (bool) \Aurora\System\Api::GetModuleDecorator('Mail')->ChangePassword($oAccount->EntityId, $oAccount->getPassword(), \trim($aArgs['Data']['Password']));
 					}
+				}
+				else if (isset($aArgs['Data']['Password']) && trim($aArgs['Data']['Password']) === '')
+				{
+					$mSubscriptionResult['IsPasswordChanged'] = false;
 				}
 			}
 		}
+		$mSubscriptionResult['Result'] = true;
 	}
 
 	public function onAfterGetQuotaFiles($aArgs, &$mResult)
