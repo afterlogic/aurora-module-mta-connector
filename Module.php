@@ -946,7 +946,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			{
 				if ($aMember['UserId'] > 0)
 				{
-					\Aurora\System\Api::GetModuleDecorator('Core')->DeleteUser($aMember['UserId']);
+					\Aurora\System\Api::GetModuleDecorator('Core')->DeleteUser((int) $aMember['UserId']);
 				}
 			}
 			$mResult = $this->oApiDomainsManager->deleteDomain($iDomainId);
