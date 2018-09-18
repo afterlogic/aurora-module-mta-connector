@@ -87,26 +87,17 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 	 */
 	public function getFetchers($iUserId = null)
 	{
-		try
-		{
-			$iOffset = 0;
-			$iLimit = 0;
-			$aFilters = $iUserId === null ? [] : ['IdUser' => [$iUserId, '=']];
+		$iOffset = 0;
+		$iLimit = 0;
+		$aFilters = $iUserId === null ? [] : ['IdUser' => [$iUserId, '=']];
 
-			return $this->oEavManager->getEntities(
-				$this->getModule()->getNamespace() . '\Classes\Fetcher',
-				array(),
-				$iOffset,
-				$iLimit,
-				$aFilters
-			);
-		}
-		catch (\Aurora\System\Exceptions\BaseException $oException)
-		{
-			$this->setLastException($oException);
-		}
-		
-		return false;
+		return $this->oEavManager->getEntities(
+			$this->getModule()->getNamespace() . '\Classes\Fetcher',
+			array(),
+			$iOffset,
+			$iLimit,
+			$aFilters
+		);
 	}
 
 	/**

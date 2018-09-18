@@ -224,14 +224,22 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public function GetFetchers($UserId)
 	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
-		
-		if ($this->getConfig('AllowFetchers', false))
+		$mResult = false;
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
+		//Only owner or SuperAdmin can get fetchers
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User &&
+			$this->getConfig('AllowFetchers', false) &&
+			(
+				$oUser->Role === \Aurora\System\Enums\UserRole::NormalUser &&
+				$oUser->EntityId === $UserId
+			) ||
+			$oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin
+		)
 		{
-			return $this->oApiFetchersManager->getFetchers($UserId);
+			$mResult = $this->oApiFetchersManager->getFetchers($UserId);
 		}
-		
-		return false;
+
+		return $mResult;
 	}
 	
 	/**
@@ -651,18 +659,26 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public function DeleteFetcher($UserId, $FetcherId)
 	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
-		
-		if ($this->getConfig('AllowFetchers', false))
+		$mResult = false;
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
+		//Only owner or SuperAdmin can delete fetcher
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User &&
+			$this->getConfig('AllowFetchers', false) &&
+			(
+				$oUser->Role === \Aurora\System\Enums\UserRole::NormalUser &&
+				$oUser->EntityId === $UserId
+			) ||
+			$oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin
+		)
 		{
 			$oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
 			if ($oFetcher && $oFetcher->IdUser === $UserId)
 			{
-				return $this->oApiFetchersManager->deleteFetcher($FetcherId);
+				$mResult = $this->oApiFetchersManager->deleteFetcher($FetcherId);
 			}
 		}
-		
-		return false;
+
+		return $mResult;
 	}
 	
 	/**
@@ -1099,13 +1115,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if ($sUserPublicId)
 		{
 			//remove from awm_accounts
-			$this->oApiMainManager->deleteAccount($aArgs["User"]->PublicId);
+			$this->oApiMainManager->deleteAccount($sUserPublicId);
 			//remove mailbox
 			$sScript = '/opt/afterlogic/scripts/webshell-maildirdel.sh';
 			if (file_exists($sScript))
 			{
-				$sEmail = \Aurora\System\Utils::GetAccountNameFromEmail($aArgs["User"]->PublicId);
-				$sDomain = \MailSo\Base\Utils::GetDomainFromEmail($aArgs["User"]->PublicId);
+				$sEmail = \Aurora\System\Utils::GetAccountNameFromEmail($sUserPublicId);
+				$sDomain = \MailSo\Base\Utils::GetDomainFromEmail($sUserPublicId);
 				$sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
 
 				\Aurora\System\Api::Log('deleteMailDir / exec: '.$sCmd, \Aurora\System\Enums\LogLevel::Full);
@@ -1118,6 +1134,18 @@ class Module extends \Aurora\System\Module\AbstractModule
 			else
 			{
 				\Aurora\System\Api::Log('deleteMailDir: '.$sScript.' does not exist', \Aurora\System\Enums\LogLevel::Full);
+			}
+			//remove fetchers
+			if (isset($aArgs["User"]->EntityId))
+			{
+				$mFetchers = $this->GetFetchers($aArgs["User"]->EntityId);
+				if ($mFetchers && is_array($mFetchers))
+				{
+					foreach ($mFetchers as $oFetcher)
+					{
+						$this->DeleteFetcher($aArgs["User"]->EntityId, $oFetcher->EntityId);
+					}
+				}
 			}
 		}
 	}
