@@ -53,6 +53,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
 		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
+		$this->subscribeEvent('Mail::ChangePassword::before', array($this, 'onBeforeChangePassword'));
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -1206,6 +1207,19 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 				return true;
 			}
+		}
+	}
+
+	public function onBeforeChangePassword($aArguments, &$mResult)
+	{
+		$mResult = true;
+
+		$oAccount = \Aurora\System\Api::GetModule('Mail')->GetAccount($aArguments['AccountId']);
+
+		if ($oAccount)
+		{
+			$mResult = $this->UpdateAccountPassword($oAccount->Email, $aArguments['CurrentPassword'], $aArguments['NewPassword']);
+			return !$mResult; // break subscriptions
 		}
 	}
 
