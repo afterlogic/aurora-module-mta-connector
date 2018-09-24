@@ -1087,7 +1087,19 @@ class Module extends \Aurora\System\Module\AbstractModule
 			if ($mResult)
 			{
 				$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
-				\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
+				try
+				{
+					\Aurora\System\Api::GetModuleDecorator('Mail')->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
+				}
+				catch (\Exception $oException)
+				{
+					if ($oException instanceof \Aurora\Modules\Mail\Exceptions\Exception &&
+						$oException->getCode() === \Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect)
+					{
+						\Aurora\Modules\Core\Module::Decorator()->DeleteUser($oUser->EntityId);
+					}
+					throw $oException;
+				}
 			}
 		}
 	}
