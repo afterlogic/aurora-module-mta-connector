@@ -1117,7 +1117,17 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		if ($aArgs['Type'] === 'User' && isset($aArgs['DomainId']) && $aArgs['DomainId'] !== 0)
 		{
-			$aArgs['Filters'] = [$this->GetName() . '::DomainId' => [$aArgs['DomainId'], '=']];
+			if (isset($aArgs['Filters']) && is_array($aArgs['Filters']) && count($aArgs['Filters']) > 0)
+			{
+				$aArgs['Filters'][$this->GetName() . '::DomainId'] = [$aArgs['DomainId'], '='];
+				$aArgs['Filters'] = [
+					'$AND' => $aArgs['Filters']
+				];
+			}
+			else
+			{
+				$aArgs['Filters'] = [$this->GetName() . '::DomainId' => [$aArgs['DomainId'], '=']];
+			}
 		}
 	}
 
