@@ -716,8 +716,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		
-		$oUser = \Aurora\System\Api::GetModuleDecorator('Core')->GetUser($UserId);
-		$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId);
+		$CoreDecorator = \Aurora\System\Api::GetModuleDecorator('Core');
+		$oUser = $CoreDecorator ? $CoreDecorator->GetUser($UserId) : null;
+		$oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
+		$oAccount = $oUser && $oMailDecorator ? $oMailDecorator->GetAccountByEmail($oUser->PublicId) : null;
 		if ($oAccount)
 		{
 			return $this->oApiAliasesManager->addAlias($oAccount->EntityId, $AliasName, $AliasDomain, $oAccount->Email);
@@ -737,8 +739,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		
 		$mResult = false;
-		$oUser = \Aurora\System\Api::GetModuleDecorator('Core')->GetUser($UserId);
-		$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId);
+		$CoreDecorator = \Aurora\System\Api::GetModuleDecorator('Core');
+		$oUser = $CoreDecorator ? $CoreDecorator->GetUser($UserId) : null;
+		$oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
+		$oAccount = $oUser && $oMailDecorator ? $oMailDecorator->GetAccountByEmail($oUser->PublicId) : null;
 		if ($oAccount)
 		{
 			foreach ($Aliases as $sAlias)
