@@ -40,7 +40,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 				awm_domains.name,
 				COUNT(awm_accounts.id_acct) AS count
 			FROM awm_domains
-			LEFT JOIN awm_accounts ON awm_accounts.id_domain = awm_domains.id_domain
+			LEFT JOIN awm_accounts ON awm_accounts.id_domain = awm_domains.id_domain AND awm_accounts.mailing_list = 0
 			WHERE awm_domains.id_tenant = %d
 			GROUP BY awm_domains.id_domain';
 
@@ -58,7 +58,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 				awm_domains.name,
 				COUNT(awm_accounts.id_acct) AS count
 			FROM awm_domains
-			LEFT JOIN awm_accounts ON awm_accounts.id_domain = awm_domains.id_domain
+			LEFT JOIN awm_accounts ON awm_accounts.id_domain = awm_domains.id_domain AND awm_accounts.mailing_list = 0
 			WHERE awm_domains.id_domain = %d
 			GROUP BY awm_domains.id_domain';
 		
