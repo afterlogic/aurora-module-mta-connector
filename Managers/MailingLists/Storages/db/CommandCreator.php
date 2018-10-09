@@ -54,7 +54,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		
 		$sSql = sprintf('SELECT id_acct, email FROM awm_accounts WHERE mailing_list = 1 AND id_tenant = %d', $iTenantId)
 				. $sWhere 
-				. sprintf(' LIMIT %d OFFSET %d', $iLimit, $iOffset);
+				. ($iLimit > 0 ? sprintf(' LIMIT %d OFFSET %d', $iLimit, $iOffset) : '');
 		
 		return $sSql;
 	}

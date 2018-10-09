@@ -50,6 +50,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Mail::ServerToResponseArray', array($this, 'onServerToResponseArray'));
 		$this->subscribeEvent('Core::AfterDeleteUser', array($this, 'onAfterDeleteUser'));
 		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
+		$this->subscribeEvent('Core::DeleteTenant::after', array($this, 'onAfterDeleteTenant'));
 		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
 		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
@@ -793,7 +794,18 @@ class Module extends \Aurora\System\Module\AbstractModule
 		
 		if ($TenantId === 0)
 		{
-			$TenantId = $this->getSingleDefaultTenantId();
+			if ($DomainId !== 0)
+			{
+				$oDomain = $this->Decorator()->GetDomain($DomainId);
+				if ($oDomain)
+				{
+					$TenantId = $oDomain->TenantId;
+				}
+			}
+			if ($TenantId === 0)
+			{
+				$TenantId = $this->getSingleDefaultTenantId();
+			}
 		}
 		$aMailingLists = $this->oApiMailingListsManager->getMailingLists($TenantId, $DomainId, $Search, $Offset, $Limit);
 		if (is_array($aMailingLists))
@@ -954,7 +966,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * @param int $IdList List of domain identifiers.
 	 * @return boolean
 	 */
-	public function DeleteDomains($IdList)
+	public function DeleteDomains($TenantId, $IdList)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		$mResult = false;
@@ -972,7 +984,8 @@ class Module extends \Aurora\System\Module\AbstractModule
 			}
 			$mResult = $this->oApiDomainsManager->deleteDomain($iDomainId);
 			if ($mResult)
-			{//remove domain from server domains list
+			{
+				//remove domain from server domains list
 				$oServer = \Aurora\System\Api::GetModule('Mail')->oApiServersManager->getServerByDomain($oDomain['Name']);
 				if ($oServer instanceof \Aurora\Modules\Mail\Classes\Server)
 				{
@@ -984,6 +997,21 @@ class Module extends \Aurora\System\Module\AbstractModule
 						$oServer->Domains = count($aDomainsNames) === 0 ? '*' : join("\r\n", $aDomainsNames);
 						\Aurora\System\Api::GetModule('Mail')->oApiServersManager->updateServer($oServer);
 					}
+				}
+				
+				// remove mailing lists of removed domain
+				$aMailingLists = $this->Decorator()->GetMailingLists($TenantId, $iDomainId);
+				$aMailingListIds = [];
+				if (isset($aMailingLists['Items']) && is_array($aMailingLists['Items']))
+				{
+					foreach ($aMailingLists['Items'] as $oMailingList)
+					{
+						$aMailingListIds[] = $oMailingList['Id'];
+					}
+				}
+				if (count($aMailingListIds))
+				{
+					$this->Decorator()->DeleteMailingLists($aMailingListIds);
 				}
 			}
 		}
@@ -1173,6 +1201,28 @@ class Module extends \Aurora\System\Module\AbstractModule
 					}
 				}
 			}
+		}
+	}
+	
+	public function onAfterDeleteTenant($aArgs, &$mResult)
+	{
+		$TenantId = $aArgs['TenantId'];
+		
+		$aDomains = $this->Decorator()->GetDomains($TenantId);
+		$aDomainIds = [];
+		if (isset($aDomains['Items']) && is_array($aDomains['Items']))
+		{
+			foreach ($aDomains['Items'] as $oDomain)
+			{
+				if ($oDomain['TenantId'] === $TenantId)
+				{
+					$aDomainIds[] = $oDomain['Id'];
+				}
+			}
+		}
+		if (count($aDomainIds))
+		{
+			$this->Decorator()->DeleteDomains($TenantId, $aDomainIds);
 		}
 	}
 

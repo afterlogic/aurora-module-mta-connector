@@ -59,6 +59,7 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Domains\Storages\Def
 				{
 					$mResult[] = [
 						'Id' => $oRow->id_domain,
+						'TenantId' => $oRow->id_tenant,
 						'Name' => $oRow->name,
 						'Count' => (int) $oRow->count
 					];

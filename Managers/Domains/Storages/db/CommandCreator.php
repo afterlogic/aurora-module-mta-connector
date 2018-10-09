@@ -37,6 +37,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	{
 		$sSql = 'SELECT
 				awm_domains.id_domain,
+				awm_domains.id_tenant,
 				awm_domains.name,
 				COUNT(awm_accounts.id_acct) AS count
 			FROM awm_domains
