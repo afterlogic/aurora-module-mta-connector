@@ -138,4 +138,29 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Domains\Storages\Def
 
 		return $mResult;
 	}
+
+	/**
+	 * Obtains domain with specified identifier.
+	 * @param string $sDomainName Domain name.
+	 * @return array|boolean
+	 */
+	public function getDomainByName($sDomainName)
+	{
+		$mResult = false;
+		if ($this->oConnection->Execute($this->oCommandCreator->getDomainByName($sDomainName)))
+		{
+			$oRow = $this->oConnection->GetNextRecord();
+			if ($oRow)
+			{
+				$mResult = [
+					'DomainId' => (int) $oRow->id_domain,
+					'TenantId' => (int) $oRow->id_tenant,
+					'Name' => $oRow->name
+				];
+			}
+		}
+		$this->throwDbExceptionIfExist();
+
+		return $mResult;
+	}
 }

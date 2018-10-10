@@ -206,4 +206,26 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\MailingLists\Storage
 		
 		return $mResult;
 	}
+
+	/**
+	 * Obtains mailing list ID with specified email
+	 * @param string $sEmail email.
+	 * @return int|boolean
+	 */
+	public function getMailingListIdByEmail($sEmail)
+	{
+		$mResult = false;
+		if ($this->oConnection->Execute($this->oCommandCreator->getMailingListIdByEmail($sEmail)))
+		{
+			$oRow = $this->oConnection->GetNextRecord();
+			if ($oRow)
+			{
+				$mResult = (int) $oRow->id_acct;
+			}
+		}
+
+		$this->throwDbExceptionIfExist();
+
+		return $mResult;
+	}
 }

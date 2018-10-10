@@ -117,4 +117,14 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	{
 		return $this->oStorage->deleteMember($iListId, $sListName);
 	}
+
+	/**
+	 * Obtains mailing list ID with specified email
+	 * @param string $sEmail email.
+	 * @return string|boolean
+	 */
+	public function getMailingListIdByEmail($sEmail)
+	{
+		return $this->oStorage->getMailingListIdByEmail($sEmail);
+	}
 }

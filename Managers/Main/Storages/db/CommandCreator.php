@@ -158,6 +158,37 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 
 		return '';
 	}
+
+	/**
+	 *
+	 * @param string $sAccountEmail
+	 * @return string
+	 */
+	public function getAccountByEmail($sAccountEmail)
+	{
+		if (!empty($sAccountEmail))
+		{
+			$sSql = 'SELECT
+					awm_accounts.%s,
+					awm_accounts.%s,
+					awm_accounts.%s,
+					awm_accounts.%s,
+					awm_accounts.%s
+				FROM awm_accounts
+				WHERE awm_accounts.%s = %s';
+			return sprintf($sSql,
+				$this->escapeColumn('id_acct'),
+				$this->escapeColumn('id_user'),
+				$this->escapeColumn('id_domain'),
+				$this->escapeColumn('mail_inc_login'),
+				$this->escapeColumn('mailing_list'),
+				$this->escapeColumn('mail_inc_login'),
+				$this->escapeString($sAccountEmail)
+			);
+		}
+
+		return '';
+	}
 }
 
 /**

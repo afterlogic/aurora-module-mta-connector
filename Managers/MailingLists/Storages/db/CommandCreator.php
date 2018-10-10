@@ -168,6 +168,18 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 			$this->escapeString($sListName)
 		);
 	}
+
+	/**
+	 * Creates SQL-query to obtain mailing list ID with specified email.
+	 * @param string $sEmail email.
+	 * @return string
+	 */
+	public function getMailingListIdByEmail($sEmail)
+	{
+		$sSql = 'SELECT id_acct FROM `awm_accounts` WHERE mail_inc_login = %s AND mailing_list = 1';
+
+		return sprintf($sSql, $this->escapeString($sEmail));
+	}
 }
 
 class CommandCreatorMySQL extends CommandCreator

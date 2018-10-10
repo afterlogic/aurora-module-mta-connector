@@ -73,4 +73,14 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	{
 		return $this->oStorage->getDomainMembers($iDomainId);
 	}
+
+	/**
+	 * Obtains specified domain.
+	 * @param string $sDomainName Domain name.
+	 * @return array|boolean
+	 */
+	public function getDomainByName($sDomainName)
+	{
+		return $this->oStorage->getDomainByName($sDomainName);
+	}
 }

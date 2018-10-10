@@ -97,4 +97,15 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 
 		return $sResult;
 	}
+
+	/**
+	 * Return Account with specified email
+	 *
+	 * @param $sAccountEmail
+	 * @return array|bool
+	 */
+	public function getAccountByEmail($sAccountEmail)
+	{
+		return $this->oStorage->getAccountByEmail(\trim($sAccountEmail));
+	}
 }

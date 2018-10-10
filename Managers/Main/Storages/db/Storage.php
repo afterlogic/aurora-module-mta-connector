@@ -120,4 +120,31 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 
 		return $iMailQuotaUsageBytes;
 	}
+
+	/**
+	 * Return Account
+	 *
+	 * @param string $sAccountEmail
+	 * @return array|bool
+	 */
+	public function getAccountByEmail($sAccountEmail)
+	{
+		$mResult = false;
+		if ($this->oConnection->Execute($this->oCommandCreator->getAccountByEmail($sAccountEmail)))
+		{
+			$oRow = $this->oConnection->GetNextRecord();
+			if ($oRow)
+			{
+				$mResult['AccountId'] = $oRow->id_acct;
+				$mResult['UserId'] = $oRow->id_user;
+				$mResult['DomainId'] = $oRow->id_domain;
+				$mResult['Email'] = $oRow->mail_inc_login;
+				$mResult['IsMailingList'] = (bool) $oRow->mailing_list;
+			}
+			$this->oConnection->FreeResult();
+		}
+		$this->throwDbExceptionIfExist();
+
+		return $mResult;
+	}
 }

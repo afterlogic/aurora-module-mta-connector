@@ -88,6 +88,23 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 
 		return sprintf($sSql, (int) $iDomainId);
 	}
+
+	/**
+	 * Creates SQL-query to obtain domain with specified name.
+	 * @param string $sDomainName Domain name.
+	 * @return string
+	 */
+	public function getDomainByName($sDomainName)
+	{
+		$sSql = 'SELECT
+				awm_domains.id_domain,
+				awm_domains.id_tenant,
+				awm_domains.name
+			FROM awm_domains
+			WHERE awm_domains.name = %s';
+
+		return sprintf($sSql, $this->escapeString($sDomainName));
+	}
 }
 
 class CommandCreatorMySQL extends CommandCreator
