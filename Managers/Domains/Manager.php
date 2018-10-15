@@ -31,6 +31,10 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	 */
 	public function createDomain($iTenantId, $sDomainName)
 	{
+		if ($this->getDomainByName($sDomainName))
+		{
+			throw new \Aurora\Modules\MtaConnector\Exceptions\Exception(\Aurora\Modules\MtaConnector\Enums\ErrorCodes::DomainExists);
+		}
 		return $this->oStorage->createDomain($iTenantId, $sDomainName);
 	}
 	

@@ -42,6 +42,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 			
 	public function init()
 	{
+		$this->aErrors = [
+			Enums\ErrorCodes::DomainExists	=> $this->i18N('ERROR_CONNECT_TO_MAIL_SERVER')
+		];
+
 		$this->subscribeEvent('AdminPanelWebclient::CreateUser::after', array($this, 'onAfterCreateUser'));
 		$this->subscribeEvent('Core::CreateTables::after', array($this, 'onAfterCreateTables'));
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
