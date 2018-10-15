@@ -21,12 +21,11 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	 */
 	public function createMailingList($iTenantId, $iDomainId, $sEmail)
 	{
-		$sSql = 'INSERT INTO awm_accounts ( id_tenant, id_domain, email, mail_inc_login, mailing_list ) VALUES ( %d, %d, %s, %s, 1 )';
+		$sSql = 'INSERT INTO awm_accounts ( id_tenant, id_domain, email, mailing_list ) VALUES ( %d, %d, %s, %s, 1 )';
 		
 		return sprintf($sSql,
 			$iTenantId,
 			$iDomainId,
-			$this->escapeString($sEmail),
 			$this->escapeString($sEmail)
 		);
 	}
@@ -176,7 +175,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	 */
 	public function getMailingListIdByEmail($sEmail)
 	{
-		$sSql = 'SELECT id_acct FROM `awm_accounts` WHERE mail_inc_login = %s AND mailing_list = 1';
+		$sSql = 'SELECT id_acct FROM `awm_accounts` WHERE email = %s AND mailing_list = 1';
 
 		return sprintf($sSql, $this->escapeString($sEmail));
 	}

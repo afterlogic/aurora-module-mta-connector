@@ -6,14 +6,12 @@ CREATE TABLE IF NOT EXISTS `awm_accounts` (
 	`deleted` TINYINT(1) NOT NULL DEFAULT '0',
 	`mail_quota_kb` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
 	`email` VARCHAR(255) NOT NULL DEFAULT '',
-	`mail_inc_login` VARCHAR(255) NULL DEFAULT NULL,
-	`mail_inc_pass` VARCHAR(255) NULL DEFAULT NULL,
+	`password` VARCHAR(255) NULL DEFAULT NULL,
 	`mailing_list` TINYINT(1) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id_acct`),
-	UNIQUE INDEX `mail_inc_login` (`mail_inc_login`),
+	UNIQUE INDEX `email` (`email`),
 	INDEX `AWM_ACCOUNTS_ID_USER_INDEX` (`id_user`),
 	INDEX `AWM_ACCOUNTS_ID_ACCT_ID_USER_INDEX` (`id_acct`, `id_user`),
-	INDEX `AWM_ACCOUNTS_MAIL_INC_LOGIN_INDEX` (`mail_inc_login`),
 	INDEX `AWM_ACCOUNTS_EMAIL_INDEX` (`email`)
 )
 COLLATE='utf8_general_ci'

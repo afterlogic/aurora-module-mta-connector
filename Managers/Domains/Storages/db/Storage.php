@@ -128,7 +128,7 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Domains\Storages\Def
 				{
 					$mResult[] = [
 						'UserId' => $oRow->id_user,
-						'Email' => $oRow->mail_inc_login
+						'Email' => $oRow->email
 					];
 				}
 			}

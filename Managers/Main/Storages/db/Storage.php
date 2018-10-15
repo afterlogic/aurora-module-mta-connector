@@ -138,7 +138,7 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Main\Storages\Defaul
 				$mResult['AccountId'] = $oRow->id_acct;
 				$mResult['UserId'] = $oRow->id_user;
 				$mResult['DomainId'] = $oRow->id_domain;
-				$mResult['Email'] = $oRow->mail_inc_login;
+				$mResult['Email'] = $oRow->email;
 				$mResult['IsMailingList'] = (bool) $oRow->mailing_list;
 			}
 			$this->oConnection->FreeResult();

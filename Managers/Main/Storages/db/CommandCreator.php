@@ -25,8 +25,8 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		{
 			$sSql = "INSERT INTO awm_accounts ( %s, %s, %s, %s ) VALUES ( %s, %s, %d, %d )";
 			return sprintf($sSql,
-				$this->escapeColumn('mail_inc_login'),
-				$this->escapeColumn('mail_inc_pass'),
+				$this->escapeColumn('email'),
+				$this->escapeColumn('password'),
 				$this->escapeColumn('id_user'),
 				$this->escapeColumn('id_domain'),
 				$this->escapeString($sEmail),
@@ -43,9 +43,9 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	{
 		if (!empty($sEmail) && !empty($sPassword) && !empty($sNewPassword))
 		{
-			$sSql = 'UPDATE awm_accounts set mail_inc_pass = %s where mail_inc_login = %s and
-					CONCAT(SHA2(CONCAT(%s, UNHEX(SUBSTR(mail_inc_pass, -16))), 256), SUBSTR(mail_inc_pass, -16)) = mail_inc_pass';
-			//SUBSTR(mail_inc_pass, -16) = salt
+			$sSql = 'UPDATE awm_accounts set password = %s where email = %s and
+					CONCAT(SHA2(CONCAT(%s, UNHEX(SUBSTR(password, -16))), 256), SUBSTR(password, -16)) = password';
+			//SUBSTR(password, -16) = salt
 			//SHA2(CONCAT({plain-password}, UNHEX(salt)), 256) = salted hash
 			//hash + salt = S(alted)SH256
 			return sprintf($sSql,
@@ -69,7 +69,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		{
 			$sSql = 'DELETE FROM awm_accounts WHERE %s = %s';
 			return sprintf($sSql,
-				$this->escapeColumn('mail_inc_login'),
+				$this->escapeColumn('email'),
 				$this->escapeString($sEmail)
 			);
 		}
@@ -149,7 +149,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 				WHERE awm_accounts.%s = %d';
 			return sprintf($sSql,
 				$this->escapeColumn('mail_quota_usage_bytes'),
-				$this->escapeColumn('mail_inc_login'),
+				$this->escapeColumn('email'),
 				$this->escapeColumn('name'),
 				$this->escapeColumn('id_user'),
 				(int) $UserId
@@ -180,9 +180,9 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 				$this->escapeColumn('id_acct'),
 				$this->escapeColumn('id_user'),
 				$this->escapeColumn('id_domain'),
-				$this->escapeColumn('mail_inc_login'),
+				$this->escapeColumn('email'),
 				$this->escapeColumn('mailing_list'),
-				$this->escapeColumn('mail_inc_login'),
+				$this->escapeColumn('email'),
 				$this->escapeString($sAccountEmail)
 			);
 		}

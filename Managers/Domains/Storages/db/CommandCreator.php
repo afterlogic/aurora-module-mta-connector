@@ -82,7 +82,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 
 	public function getDomainMembers($iDomainId)
 	{
-		$sSql = 'SELECT id_user, mail_inc_login
+		$sSql = 'SELECT id_user, email
 				FROM awm_accounts
 				WHERE id_domain = %d';
 
