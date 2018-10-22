@@ -21,7 +21,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	 */
 	public function createMailingList($iTenantId, $iDomainId, $sEmail)
 	{
-		$sSql = 'INSERT INTO awm_accounts ( id_tenant, id_domain, email, mailing_list ) VALUES ( %d, %d, %s, %s, 1 )';
+		$sSql = 'INSERT INTO awm_accounts ( id_tenant, id_domain, email, mailing_list ) VALUES ( %d, %d, %s, 1 )';
 		
 		return sprintf($sSql,
 			$iTenantId,
