@@ -767,12 +767,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 	
 	/**
 	 * Creates mailing list.
-	 * @param int $TenantId Tenant identifier.
 	 * @param int $DomainId Domain identifier.
 	 * @param string $Email Email of mailing list.
 	 * @return boolean
 	 */
-	public function CreateMailingList($TenantId = 0, $DomainId = 0, $Email = '')
+	public function CreateMailingList($DomainId = 0, $Email = '')
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		
@@ -780,7 +779,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			$TenantId = $this->getSingleDefaultTenantId();
 		}
-		return $this->oApiMailingListsManager->createMailingList($TenantId, $DomainId, $Email);
+		return $this->oApiMailingListsManager->createMailingList($DomainId, $Email);
 	}
 	
 	/**

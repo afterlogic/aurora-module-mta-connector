@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS `awm_accounts` (
 	`id_acct` INT(11) NOT NULL AUTO_INCREMENT,
 	`id_user` INT(11) NOT NULL DEFAULT '0',
 	`id_domain` INT(11) NOT NULL DEFAULT '0',
-	`id_tenant` INT(11) NOT NULL DEFAULT '0',
 	`deleted` TINYINT(1) NOT NULL DEFAULT '0',
 	`mail_quota_kb` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
 	`email` VARCHAR(255) NOT NULL DEFAULT '',

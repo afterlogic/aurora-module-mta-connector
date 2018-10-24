@@ -29,14 +29,13 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\MailingLists\Storage
 
 	/**
 	 * Creates mailing list.
-	 * @param int $iTenantId Tenant identifier.
 	 * @param int $iDomainId Domain identifier.
 	 * @param string $sEmail Email of mailing list.
 	 * @return boolean
 	 */
-	public function createMailingList($iTenantId, $iDomainId, $sEmail)
+	public function createMailingList($iDomainId, $sEmail)
 	{
-		$mResult = $this->oConnection->Execute($this->oCommandCreator->createMailingList($iTenantId, $iDomainId, $sEmail));
+		$mResult = $this->oConnection->Execute($this->oCommandCreator->createMailingList($iDomainId, $sEmail));
 
 		$this->throwDbExceptionIfExist();
 		

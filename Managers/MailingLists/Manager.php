@@ -25,14 +25,13 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 
 	/**
 	 * Creates mailing list.
-	 * @param int $iTenantId Tenant identifier.
 	 * @param int $iDomainId Domain identifier.
 	 * @param string $sEmail Email of mailing list.
 	 * @return boolean
 	 */
-	public function createMailingList($iTenantId, $iDomainId, $sEmail)
+	public function createMailingList($iDomainId, $sEmail)
 	{
-		return $this->oStorage->createMailingList($iTenantId, $iDomainId, $sEmail);
+		return $this->oStorage->createMailingList($iDomainId, $sEmail);
 	}
 	
 	/**

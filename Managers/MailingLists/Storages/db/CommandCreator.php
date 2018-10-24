@@ -14,17 +14,15 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 {
 	/**
 	 * Creates SQL-query to create mailing list.
-	 * @param int $iTenantId Tenant identifier.
 	 * @param int $iDomainId Domain identifier.
 	 * @param string $sEmail Email of mailing list.
 	 * @return string
 	 */
-	public function createMailingList($iTenantId, $iDomainId, $sEmail)
+	public function createMailingList($iDomainId, $sEmail)
 	{
-		$sSql = 'INSERT INTO awm_accounts ( id_tenant, id_domain, email, mailing_list ) VALUES ( %d, %d, %s, 1 )';
+		$sSql = 'INSERT INTO awm_accounts ( id_domain, email, mailing_list ) VALUES ( %d, %s, 1 )';
 		
 		return sprintf($sSql,
-			$iTenantId,
 			$iDomainId,
 			$this->escapeString($sEmail)
 		);
@@ -44,17 +42,22 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		$sWhere = '';
 		if ($iDomainId !== 0)
 		{
-			$sWhere .= sprintf(' AND id_domain = %d', $iDomainId);
+			$sWhere .= sprintf(' AND awm_accounts.id_domain = %d', $iDomainId);
 		}
 		if ($sSearch !== '')
 		{
-			$sWhere .= sprintf(' AND email LIKE %s', '\'%' . $this->escapeString($sSearch, true, true) . '%\'');
+			$sWhere .= sprintf(' AND awm_accounts.email LIKE %s', '\'%' . $this->escapeString($sSearch, true, true) . '%\'');
 		}
-		
-		$sSql = sprintf('SELECT id_acct, email FROM awm_accounts WHERE mailing_list = 1 AND id_tenant = %d', $iTenantId)
-				. $sWhere 
-				. ($iLimit > 0 ? sprintf(' LIMIT %d OFFSET %d', $iLimit, $iOffset) : '');
-		
+
+		$sSql = sprintf('SELECT
+				awm_accounts.id_acct,
+				awm_accounts.email
+			FROM awm_accounts
+			LEFT JOIN awm_domains ON awm_domains.id_domain = awm_accounts.id_domain
+			WHERE awm_accounts.mailing_list = 1 AND awm_domains.id_tenant = %d', $iTenantId)
+			. $sWhere
+			. ($iLimit > 0 ? sprintf(' LIMIT %d OFFSET %d', $iLimit, $iOffset) : '');
+
 		return $sSql;
 	}
 	
@@ -70,15 +73,18 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		$sWhere = '';
 		if ($iDomainId !== 0)
 		{
-			$sWhere .= sprintf(' AND id_domain = %d', $iDomainId);
+			$sWhere .= sprintf(' AND awm_accounts.id_domain = %d', $iDomainId);
 		}
 		if ($sSearch !== '')
 		{
-			$sWhere .= sprintf(' AND email LIKE %s', '\'%' . $this->escapeString($sSearch, true, true) . '%\'');
+			$sWhere .= sprintf(' AND awm_accounts.email LIKE %s', '\'%' . $this->escapeString($sSearch, true, true) . '%\'');
 		}
-		
-		$sSql = sprintf('SELECT COUNT(id_acct) as count FROM awm_accounts WHERE mailing_list = 1 AND id_tenant = %d', $iTenantId) . $sWhere;
-		
+
+		$sSql = sprintf('SELECT COUNT(awm_accounts.id_acct) as count
+			FROM awm_accounts
+			LEFT JOIN awm_domains ON awm_domains.id_domain = awm_accounts.id_domain
+			WHERE awm_accounts.mailing_list = 1 AND awm_domains.id_tenant = %d', $iTenantId) . $sWhere;
+
 		return $sSql;
 	}
 	
