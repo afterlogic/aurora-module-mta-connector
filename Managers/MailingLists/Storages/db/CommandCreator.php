@@ -166,7 +166,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 	 */
 	public function deleteMember($iListId, $sListName)
 	{
-		$sSql = 'DELETE FROM awm_mailinglists WHERE id_acct = %d AND list_name = %s';
+		$sSql = 'DELETE FROM awm_mailinglists WHERE id_acct = %d AND list_to = %s';
 
 		return sprintf($sSql,
 			$iListId,
