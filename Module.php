@@ -66,19 +66,19 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->oApiMailingListsManager = new Managers\MailingLists\Manager($this);
 		$this->oApiDomainsManager = new Managers\Domains\Manager($this);
 
-		$this->extendObject(
-			'Aurora\Modules\Mail\Classes\Server', 
+		\Aurora\Modules\Mail\Classes\Server::extend(
+			self::GetName(),
 			[
 				'Native' => array('bool', false),
 			]
-		);
-		$this->extendObject(
-			'Aurora\Modules\Core\Classes\User',
+		);		
+		\Aurora\Modules\Core\Classes\User::extend(
+			self::GetName(),
 			[
 				'DomainId' => array('int', 0),
 				'TotalQuotaBytes' => array('bigint', 1),//bytes
 			]
-		);
+		);		
 	}
 
 	/***** public functions might be called with web API *****/
@@ -323,7 +323,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		
 		if ($this->getConfig('AllowFetchers', false))
 		{
-			$oFetcher = new \Aurora\Modules\MtaConnector\Classes\Fetcher($this->GetName());
+			$oFetcher = new \Aurora\Modules\MtaConnector\Classes\Fetcher(self::GetName());
 			$oFetcher->IdUser = $UserId;
 			$oFetcher->IdAccount = $AccountId;
 
@@ -905,7 +905,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$mResult = $this->oApiDomainsManager->createDomain($TenantId, $DomainName);
 		if ($mResult)
 		{
-			$oServer = \Aurora\System\Api::GetModule('Mail')->oApiServersManager->getServerByFilter([$this->GetName() . '::Native' => true]);
+			$oServer = \Aurora\System\Api::GetModule('Mail')->oApiServersManager->getServerByFilter([self::GetName() . '::Native' => true]);
 			if ($oServer instanceof \Aurora\Modules\Mail\Classes\Server)
 			{
 				if ($oServer->Domains === '*')
@@ -1054,14 +1054,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			if ($oUser->Role === \Aurora\System\Enums\UserRole::NormalUser && $oUser->EntityId === $UserId)
 			{
-				$iResult = $oUser->{$this->GetName() . '::TotalQuotaBytes'};
+				$iResult = $oUser->{self::GetName() . '::TotalQuotaBytes'};
 			}
 			else if ($oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin)
 			{
 				$oUser = \Aurora\System\Api::getUserById($UserId);
 				if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 				{
-					$iResult = $oUser->{$this->GetName() . '::TotalQuotaBytes'};
+					$iResult = $oUser->{self::GetName() . '::TotalQuotaBytes'};
 				}
 			}
 		}
@@ -1075,8 +1075,8 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		if (is_array($mResult))
 		{
-			$mResult['AllowToDelete'] = !$mResult[$this->GetName().'::Native'];
-			$mResult['AllowEditDomains'] = !$mResult[$this->GetName().'::Native'];
+			$mResult['AllowToDelete'] = !$mResult[self::GetName().'::Native'];
+			$mResult['AllowEditDomains'] = !$mResult[self::GetName().'::Native'];
 		}
 	}
 	
@@ -1097,7 +1097,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$mServer = $oApiServersManager->getServer($mServerId);
 				if ($mServer)
 				{
-					$mServer->{$this->GetName().'::Native'} = true;
+					$mServer->{self::GetName().'::Native'} = true;
 					$oApiServersManager->updateServer($mServer);
 				}
 			}
@@ -1111,12 +1111,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$sPassword = isset($aData['Password']) ? $aData['Password'] : '';
 		$sQuotaBytes = isset($aData['QuotaBytes']) ? $aData['QuotaBytes'] : null;
 		$oUser = \Aurora\System\Api::getUserById($mResult);
-		$oUser->{$this->GetName() . '::DomainId'} = $iDomainId;
+		$oUser->{self::GetName() . '::DomainId'} = $iDomainId;
 		$oCoreDecorator = \Aurora\Modules\Core\Module::Decorator();
 		$oCoreDecorator->UpdateUserObject($oUser);
 		if ($sEmail && $sPassword && $oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
-			$oUser->{$this->GetName() . '::TotalQuotaBytes'} = (int) $sQuotaBytes;
+			$oUser->{self::GetName() . '::TotalQuotaBytes'} = (int) $sQuotaBytes;
 			\Aurora\System\Managers\Eav::getInstance()->updateEntity($oUser);
 			$mResult = $this->oApiMainManager->createAccount($sEmail, $sPassword, $oUser->EntityId, $iDomainId);
 			if ($mResult)
@@ -1154,14 +1154,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			if (isset($aArgs['Filters']) && is_array($aArgs['Filters']) && count($aArgs['Filters']) > 0)
 			{
-				$aArgs['Filters'][$this->GetName() . '::DomainId'] = [$aArgs['DomainId'], '='];
+				$aArgs['Filters'][self::GetName() . '::DomainId'] = [$aArgs['DomainId'], '='];
 				$aArgs['Filters'] = [
 					'$AND' => $aArgs['Filters']
 				];
 			}
 			else
 			{
-				$aArgs['Filters'] = [$this->GetName() . '::DomainId' => [$aArgs['DomainId'], '=']];
+				$aArgs['Filters'] = [self::GetName() . '::DomainId' => [$aArgs['DomainId'], '=']];
 			}
 		}
 	}
@@ -1236,7 +1236,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			foreach ($mResult['Items'] as &$aUser)
 			{
 				$oUser = \Aurora\System\Api::GetModuleDecorator('Core')->GetUser($aUser['Id']);
-				$aUser['QuotaBytes'] = $oUser instanceof \Aurora\Modules\Core\Classes\User ? $oUser->{$this->GetName() . '::TotalQuotaBytes'} : 0;
+				$aUser['QuotaBytes'] = $oUser instanceof \Aurora\Modules\Core\Classes\User ? $oUser->{self::GetName() . '::TotalQuotaBytes'} : 0;
 			}
 		}
 	}
@@ -1251,10 +1251,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 				//Update quota
 				if (isset($aArgs['Data']['QuotaBytes']))
 				{
-					$oUser->{$this->GetName() . '::TotalQuotaBytes'} = (int) $aArgs['Data']['QuotaBytes'];
+					$oUser->{self::GetName() . '::TotalQuotaBytes'} = (int) $aArgs['Data']['QuotaBytes'];
 					\Aurora\System\Managers\Eav::getInstance()->updateEntity($oUser);
 					//Update mail quota
-					$iTotalQuotaBytes =  $oUser->{$this->GetName() . '::TotalQuotaBytes'};
+					$iTotalQuotaBytes =  $oUser->{self::GetName() . '::TotalQuotaBytes'};
 					$iFileUsageBytes = $oUser->{'PersonalFiles::UsedSpace'};
 					$iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
 					$this->oApiMainManager->updateUserMailQuota($aArgs['Data']['Id'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 1);
@@ -1285,7 +1285,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
 			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 			{
-				$iTotalQuotaBytes =  $oUser->{$this->GetName() . '::TotalQuotaBytes'};
+				$iTotalQuotaBytes =  $oUser->{self::GetName() . '::TotalQuotaBytes'};
 				$iFileUsageBytes = $mResult['Used'];
 				$iMailQuotaUsageBytes = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
 				$iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
@@ -1310,7 +1310,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$iFilesQuotaUsageBytes = $oUser->{'PersonalFiles::UsedSpace'};
 				$iMailQuotaUsageBytes = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
 				$mResult[0] = (int) (($iFilesQuotaUsageBytes + $iMailQuotaUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
-				$mResult[1] = (int) ($oUser->{$this->GetName() . '::TotalQuotaBytes'} / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
+				$mResult[1] = (int) ($oUser->{self::GetName() . '::TotalQuotaBytes'} / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
 
 				return true;
 			}
