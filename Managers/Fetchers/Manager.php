@@ -92,7 +92,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 		$aFilters = $iUserId === null ? [] : ['IdUser' => [$iUserId, '=']];
 
 		return $this->oEavManager->getEntities(
-			$this->getModule()::getNamespace() . '\Classes\Fetcher',
+			\Aurora\Modules\MtaConnector\Module::getNamespace() . '\Classes\Fetcher',
 			array(),
 			$iOffset,
 			$iLimit,
@@ -109,7 +109,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 	{
 		try
 		{
-			return $this->oEavManager->getEntity($iEntityId, $this->getModule()::getNamespace() . '\Classes\Fetcher');
+			return $this->oEavManager->getEntity($iEntityId, \Aurora\Modules\MtaConnector\Module::getNamespace() . '\Classes\Fetcher');
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)
 		{
