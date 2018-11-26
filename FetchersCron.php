@@ -20,7 +20,7 @@ class CronFetcher
 		$this->oApiFetchersManager = $this->oMtaConnectorModule->oApiFetchersManager;
 		
 		$oMailModule =  \Aurora\System\Api::GetModule('Mail');
-		$this->oApiAccountsManager = $oMailModule->oApiAccountsManager;
+		$this->oApiAccountsManager = $oMailModule->getAccountsManager();
 		
 		$this->sFetchersCronMpopDataFolder = $this->oMtaConnectorModule->getConfig('FetchersCronMpopDataFolder', '');
 		$this->sFetchersCronMpopScript = $this->oMtaConnectorModule->getConfig('FetchersCronMpopScript', '');

@@ -26,7 +26,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 	{
 		parent::__construct($oModule);
 		
-		$this->oEavManager = new \Aurora\System\Managers\Eav();
+		$this->oEavManager = \Aurora\System\Managers\Eav::getInstance();
 	}
 
 	/**
@@ -92,7 +92,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 		$aFilters = $iUserId === null ? [] : ['IdUser' => [$iUserId, '=']];
 
 		return $this->oEavManager->getEntities(
-			\Aurora\Modules\MtaConnector\Module::getNamespace() . '\Classes\Fetcher',
+			\Aurora\Modules\MtaConnector\Classes\Fetcher::class,
 			array(),
 			$iOffset,
 			$iLimit,
@@ -109,7 +109,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 	{
 		try
 		{
-			return $this->oEavManager->getEntity($iEntityId, \Aurora\Modules\MtaConnector\Module::getNamespace() . '\Classes\Fetcher');
+			return $this->oEavManager->getEntity($iEntityId, \Aurora\Modules\MtaConnector\Classes\Fetcher::class);
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)
 		{
