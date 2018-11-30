@@ -59,7 +59,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
 		$this->subscribeEvent('Mail::ChangePassword::before', array($this, 'onBeforeChangePassword'));
-		$this->subscribeEvent('Register', array($this, 'onRegister'), 90);
+		$this->subscribeEvent('MailSignup::Signup::after', array($this, 'onAfterSignup'), 90);
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -1333,14 +1333,19 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * @param array $aArgs New account credentials.
 	 * @param type $mResult Is passed by reference.
 	 */
-	public function onRegister($aArgs, &$mResult)
+	public function onAfterSignup($aArgs, &$mResult)
 	{
-		if (isset($aArgs['UserId']) && isset($aArgs['Login']) && isset($aArgs['Password'])
-			&& !empty($aArgs['Password']) && !empty($aArgs['Login']))
+		if (isset($aArgs['Login']) && isset($aArgs['Password'])
+			&& !empty(trim($aArgs['Password'])) && !empty(trim($aArgs['Login'])))
 		{
 			$bResult = false;
+			$sLogin = trim($aArgs['Login']);
+			$sPassword = trim($aArgs['Password']);
+			$sFriendlyName = isset($aArgs['Name']) ? trim($aArgs['Name']) : '';
+			$bSignMe = isset($aArgs['SignMe']) ? (bool) $aArgs['SignMe'] : false;
 			$bPrevState = \Aurora\System\Api::skipCheckUserRole(true);
-			$oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
+			$iUserId = \Aurora\Modules\Core\Module::Decorator()->CreateUser(0, $sLogin);
+			$oUser = \Aurora\System\Api::getUserById((int) $iUserId);
 			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 			{
 				$sDomain = \MailSo\Base\Utils::GetDomainFromEmail($oUser->PublicId);
@@ -1351,13 +1356,27 @@ class Module extends \Aurora\System\Module\AbstractModule
 					$sQuotaBytes = (int) $this->getConfig('UserDefaultQuotaMB', 1) * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER; //Mbytes to bytes
 					$oUser->{$this->GetName() . '::TotalQuotaBytes'} = $sQuotaBytes;
 					\Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
-					$mResult = $this->oApiMainManager->createAccount($aArgs['Login'], $aArgs['Password'], $oUser->EntityId, $aDomain['DomainId']);
+					$mResult = $this->oApiMainManager->createAccount($sLogin, $sPassword, $oUser->EntityId, $aDomain['DomainId']);
 					if ($mResult)
 					{
 						$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
 						try
 						{
-							$bResult = \Aurora\Modules\Mail\Module::Decorator()->CreateAccount($oUser->EntityId, '', $aArgs['Login'], $aArgs['Login'], $aArgs['Password']);
+							$oAccount = \Aurora\Modules\Mail\Module::Decorator()->CreateAccount($oUser->EntityId, $sFriendlyName, $sLogin, $sLogin, $sPassword);
+							if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account)
+							{
+								$bResult = true;
+								$iTime = $bSignMe ? 0 : time();
+								$sAuthToken = \Aurora\System\Api::UserSession()->Set(
+									[
+										'token' => 'auth',
+										'sign-me' => $bSignMe,
+										'id' => $oAccount->IdUser,
+										'account' => $oAccount->EntityId,
+										'account_type' => $oAccount->getName()
+									], $iTime);
+								$mResult = ['AuthToken' => $sAuthToken];
+							}
 						}
 						catch (\Exception $oException)
 						{
