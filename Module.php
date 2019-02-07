@@ -52,14 +52,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('AdminPanelWebclient::GetEntityList::before', array($this, 'onBeforeGetEntityList'));
 		$this->subscribeEvent('Mail::ServerToResponseArray', array($this, 'onServerToResponseArray'));
-		$this->subscribeEvent('Core::AfterDeleteUser', array($this, 'onAfterDeleteUser'));
+		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
 		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
 		$this->subscribeEvent('Core::DeleteTenant::after', array($this, 'onAfterDeleteTenant'));
 		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
 		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
 		$this->subscribeEvent('Mail::ChangePassword::before', array($this, 'onBeforeChangePassword'));
-		$this->subscribeEvent('MailSignup::Signup::before', array($this, 'onAfterSignup'));
+		$this->subscribeEvent('MailSignup::Signup::after', array($this, 'onAfterSignup'), 90);
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -1163,7 +1163,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 
-	public function onAfterDeleteUser($aArgs, &$mResult)
+	public function onBeforeDeleteUser($aArgs, &$mResult)
 	{
 		$sUserPublicId = isset($aArgs["User"]) ? $aArgs["User"]->PublicId : null;
 		if ($sUserPublicId)
