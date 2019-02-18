@@ -1406,7 +1406,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$iTenantId = 0;
 		$oSettings =& \Aurora\System\Api::GetSettings();
 
-		if (!$oSettings->GetConf('EnableMultiChannel') && !$oSettings->GetConf('EnableMultiTenant'))
+		if (!$oSettings->EnableMultiChannel && !$oSettings->EnableMultiTenant)
 		{
 			$iTenantId = \Aurora\Modules\Core\Module::Decorator()->GetTenantIdByName('Default');
 		}
