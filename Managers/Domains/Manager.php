@@ -33,7 +33,7 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	{
 		if ($this->getDomainByName($sDomainName))
 		{
-			throw new \Aurora\Modules\MtaConnector\Exceptions\Exception(\Aurora\Modules\MtaConnector\Enums\ErrorCodes::DomainExists);
+			throw new \Aurora\Modules\MailDomains\Exceptions\Exception(\Aurora\Modules\MailDomains\Enums\ErrorCodes::DomainExists);
 		}
 		return $this->oStorage->createDomain($iTenantId, $sDomainName);
 	}
