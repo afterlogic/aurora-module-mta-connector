@@ -49,7 +49,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
 		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
-		$this->subscribeEvent('Core::DeleteTenant::after', array($this, 'onAfterDeleteTenant'));
+//		$this->subscribeEvent('Core::DeleteTenant::after', array($this, 'onAfterDeleteTenant'));
 		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
 		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
@@ -1123,27 +1123,27 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 	
-	public function onAfterDeleteTenant($aArgs, &$mResult)
-	{
-		$TenantId = $aArgs['TenantId'];
-		
-		$aDomains = $this->Decorator()->GetDomains($TenantId);
-		$aDomainIds = [];
-		if (isset($aDomains['Items']) && is_array($aDomains['Items']))
-		{
-			foreach ($aDomains['Items'] as $oDomain)
-			{
-				if ($oDomain['TenantId'] === $TenantId)
-				{
-					$aDomainIds[] = $oDomain['Id'];
-				}
-			}
-		}
-		if (count($aDomainIds))
-		{
-			$this->Decorator()->DeleteDomains($TenantId, $aDomainIds);
-		}
-	}
+//	public function onAfterDeleteTenant($aArgs, &$mResult)
+//	{
+//		$TenantId = $aArgs['TenantId'];
+//		
+//		$aDomains = $this->Decorator()->GetDomains($TenantId);
+//		$aDomainIds = [];
+//		if (isset($aDomains['Items']) && is_array($aDomains['Items']))
+//		{
+//			foreach ($aDomains['Items'] as $oDomain)
+//			{
+//				if ($oDomain['TenantId'] === $TenantId)
+//				{
+//					$aDomainIds[] = $oDomain['Id'];
+//				}
+//			}
+//		}
+//		if (count($aDomainIds))
+//		{
+//			$this->Decorator()->DeleteDomains($TenantId, $aDomainIds);
+//		}
+//	}
 
 	public function onAfterGetEntityList($aArgs, &$mResult)
 	{
