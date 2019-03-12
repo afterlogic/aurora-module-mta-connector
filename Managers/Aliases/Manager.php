@@ -57,4 +57,14 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	{
 		return $this->oStorage->deleteAlias($iAccountId, $sName, $sDomain);
 	}
+	
+	/**
+	 * Deletes all aliases for specified account.
+	 * @param int $iAccountId Account identifier.
+	 * @return boolean
+	 */
+	public function deleteAliases($iAccountId)
+	{
+		return $this->oStorage->deleteAliases($iAccountId);
+	}
 }

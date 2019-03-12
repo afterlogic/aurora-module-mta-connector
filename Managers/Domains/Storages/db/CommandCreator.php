@@ -14,15 +14,17 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 {
 	/**
 	 * Creates SQL-query to create domain.
+	 * @param int $iDomainId Domain identifier.
 	 * @param int $iTenantId Tenant identifier.
 	 * @param int $sDomainName Domain name.
 	 * @return string
 	 */
-	public function createDomain($iTenantId, $sDomainName)
+	public function createDomain($iDomainId, $iTenantId, $sDomainName)
 	{
-		$sSql = 'INSERT INTO awm_domains ( id_tenant, name ) VALUES ( %d, %s )';
+		$sSql = 'INSERT INTO awm_domains ( id_domain, id_tenant, name ) VALUES ( %d, %d, %s )';
 		
 		return sprintf($sSql,
+			$iDomainId,
 			$iTenantId,
 			$this->escapeString($sDomainName)
 		);

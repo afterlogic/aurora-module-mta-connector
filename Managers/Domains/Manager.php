@@ -25,17 +25,18 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 
 	/**
 	 * Creates domain.
+	 * @param int $iDomainId Domain identifier.
 	 * @param int $iTenantId Tenant identifier.
 	 * @param int $sDomainName Domain name.
 	 * @return boolean
 	 */
-	public function createDomain($iTenantId, $sDomainName)
+	public function createDomain($iDomainId, $iTenantId, $sDomainName)
 	{
 		if ($this->getDomainByName($sDomainName))
 		{
 			throw new \Aurora\Modules\MailDomains\Exceptions\Exception(\Aurora\Modules\MailDomains\Enums\ErrorCodes::DomainExists);
 		}
-		return $this->oStorage->createDomain($iTenantId, $sDomainName);
+		return $this->oStorage->createDomain($iDomainId, $iTenantId, $sDomainName);
 	}
 	
 	/**

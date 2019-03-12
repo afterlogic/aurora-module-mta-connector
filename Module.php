@@ -36,36 +36,42 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public $oApiMailingListsManager = null;
 			
 	/* 
-	 * @var $oApiDomainsManager Managers\MailingLists
-	 * Deprecated. Domains managment is placed in MailDomains module
+	 * @var $oApiMtaDomainsManager Managers\Domains
 	 */
-//	public $oApiDomainsManager = null;
+	public $oApiMtaDomainsManager = null;
 			
 	public function init()
 	{
 		$this->subscribeEvent('AdminPanelWebclient::CreateUser::after', array($this, 'onAfterCreateUser'));
+		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
+		
 		$this->subscribeEvent('Core::CreateTables::after', array($this, 'onAfterCreateTables'));
+		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
+		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
+		
+		$this->subscribeEvent('Mail::CreateAccount::after', array($this, 'onAfterCreateAccount'));
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
-		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
-		$this->subscribeEvent('Core::GetEntityList::after', array($this, 'onAfterGetEntityList'));
-//		$this->subscribeEvent('Core::DeleteTenant::after', array($this, 'onAfterDeleteTenant'));
-		$this->subscribeEvent('AdminPanelWebclient::UpdateEntity::after', array($this, 'onAfterUpdateEntity'));
-		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
 		$this->subscribeEvent('Mail::ChangePassword::before', array($this, 'onBeforeChangePassword'));
+		
+		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
+		
 		$this->subscribeEvent('MailSignup::Signup::after', array($this, 'onAfterSignup'), 90);
+		
+		$this->subscribeEvent('MailDomains::CreateDomain::after', array($this, 'onAfterCreateDomain'));
+		$this->subscribeEvent('MailDomains::DeleteDomains::after', array($this, 'onAfterDeleteDomain'));
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
 		$this->oApiAliasesManager = new Managers\Aliases\Manager($this);
 		$this->oApiMailingListsManager = new Managers\MailingLists\Manager($this);
-//		$this->oApiDomainsManager = new Managers\Domains\Manager($this);
+		$this->oApiMtaDomainsManager = new Managers\Domains\Manager($this);
 
 		\Aurora\Modules\Core\Classes\User::extend(
 			self::GetName(),
 			[
-				'TotalQuotaBytes' => array('bigint', 1),//bytes
+				'TotalQuotaBytes' => array('bigint', 1), // bytes
 			]
 		);		
 	}
@@ -870,115 +876,36 @@ class Module extends \Aurora\System\Module\AbstractModule
 		return $bResult;
 	}
 	
-	/**
-	 * Creates domain.
-	 * @param int $TenantId Tenant identifier.
-	 * @param int $DomainName Domain name.
-	 * @return boolean
-	 */
-//	public function CreateDomain($TenantId = 0, $DomainName = '')
-//	{
-//		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-//		
-//		if ($DomainName === '')
-//		{
-//			throw new \Aurora\System\Exceptions\ApiException(\Aurora\System\Notifications::InvalidInputParameter);
-//		}
-//		
-//		$mResult = $this->oApiDomainsManager->createDomain($TenantId, $DomainName);
-//
-//		return $mResult;
-//	}
+	public function onAfterCreateDomain($aArgs, &$mResult)
+	{
+		$this->oApiMtaDomainsManager->createDomain($mResult, $aArgs['TenantId'], $aArgs['DomainName']);
+	}
 	
-	/**
-	 * Obtains all domains for specified tenant.
-	 * @param int $TenantId Tenant identifier.
-	 * @return array|boolean
-	 */
-//	public function GetDomains($TenantId = 0)
-//	{
-//		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-//		
-//		$aDomains = $this->oApiDomainsManager->getDomains($TenantId);
-//		if (is_array($aDomains))
-//		{
-//			return [
-//				'Count' => count($aDomains),
-//				'Items' => $aDomains
-//			];
-//		}
-//		
-//		return false;
-//	}
-	
-	/**
-	 * Obtains domain.
-	 * @param int $Id Domain identifier.
-	 * @return array|boolean
-	 */
-//	public function GetDomain($Id)
-//	{
-//		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-//		
-//		return $this->oApiDomainsManager->getDomain($Id);
-//	}
-	
-	/**
-	 * Deletes domains.
-	 * @param int $IdList List of domain identifiers.
-	 * @return boolean
-	 */
-//	public function DeleteDomains($TenantId, $IdList)
-//	{
-//		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-//		$mResult = false;
-//		foreach ($IdList as $iDomainId)
-//		{
-//			// deleteDomainMembers
-//			$aDomainMemberEmails = $this->oApiDomainsManager->getDomainMembers($iDomainId);
-//			$oDomain = $this->oApiDomainsManager->getDomain($iDomainId);
-//			foreach ($aDomainMemberEmails as $aMember)
-//			{
-//				if ($aMember['UserId'] > 0)
-//				{
-//					\Aurora\Modules\Core\Module::Decorator()->DeleteUser((int) $aMember['UserId']);
-//				}
-//			}
-//			$mResult = $this->oApiDomainsManager->deleteDomain($iDomainId);
-//			if ($mResult)
-//			{
-//				//remove domain from server domains list
-//				$oServer = \Aurora\System\Api::GetModule('Mail')->oApiServersManager->getServerByDomain($oDomain['Name']);
-//				if ($oServer instanceof \Aurora\Modules\Mail\Classes\Server)
-//				{
-//					$aDomainsNames = explode("\r\n", $oServer->Domains);
-//					$iIndex = array_search($oDomain['Name'], $aDomainsNames);
-//					if ($iIndex !== false)
-//					{
-//						array_splice($aDomainsNames, $iIndex, 1);
-//						$oServer->Domains = count($aDomainsNames) === 0 ? '*' : join("\r\n", $aDomainsNames);
-//						\Aurora\System\Api::GetModule('Mail')->oApiServersManager->updateServer($oServer);
-//					}
-//				}
-//				
-//				// remove mailing lists of removed domain
-//				$aMailingLists = $this->Decorator()->GetMailingLists($TenantId, $iDomainId);
-//				$aMailingListIds = [];
-//				if (isset($aMailingLists['Items']) && is_array($aMailingLists['Items']))
-//				{
-//					foreach ($aMailingLists['Items'] as $oMailingList)
-//					{
-//						$aMailingListIds[] = $oMailingList['Id'];
-//					}
-//				}
-//				if (count($aMailingListIds))
-//				{
-//					$this->Decorator()->DeleteMailingLists($aMailingListIds);
-//				}
-//			}
-//		}
-//		return $mResult;
-//	}
+	public function onAfterDeleteDomain($aArgs, &$mResult)
+	{
+		$mResult = false;
+		foreach ($aArgs['IdList'] as $iDomainId)
+		{
+			// remove mailing lists of removed domain
+			$aMailingLists = $this->Decorator()->GetMailingLists($aArgs['TenantId'], $iDomainId);
+			$aMailingListIds = [];
+			if (isset($aMailingLists['Items']) && is_array($aMailingLists['Items']))
+			{
+				foreach ($aMailingLists['Items'] as $oMailingList)
+				{
+					$aMailingListIds[] = $oMailingList['Id'];
+				}
+			}
+			if (count($aMailingListIds))
+			{
+				$this->Decorator()->DeleteMailingLists($aMailingListIds);
+			}
+			
+			// remove domain
+			$mResult = $this->oApiMtaDomainsManager->deleteDomain($iDomainId);
+		}
+		return $mResult;
+	}
 	
 	/**
 	 * 
@@ -1041,10 +968,16 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 	
+	public function onAfterCreateAccount(&$aData, &$mResult)
+	{
+		$oAccount = $mResult;
+		$oUser = \Aurora\System\Api::getUserById($oAccount->IdUser);
+		$this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->EntityId, $oUser->{'MailDomains::DomainId'});
+	}
+	
 	public function onAfterCreateUser(&$aData, &$mResult)
 	{
 		$sEmail = isset($aData['PublicId']) ? $aData['PublicId'] : '';
-		$iDomainId = isset($aData['DomainId']) ? $aData['DomainId'] : 0;
 		$sPassword = isset($aData['Password']) ? $aData['Password'] : '';
 		$sQuotaBytes = isset($aData['QuotaBytes']) ? $aData['QuotaBytes'] : null;
 		$oUser = \Aurora\System\Api::getUserById($mResult);
@@ -1052,24 +985,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			$oUser->{self::GetName() . '::TotalQuotaBytes'} = (int) $sQuotaBytes;
 			\Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
-			$mResult = $this->oApiMainManager->createAccount($sEmail, $sPassword, $oUser->EntityId, $iDomainId);
-			if ($mResult)
-			{
-				$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
-				try
-				{
-					\Aurora\Modules\Mail\Module::Decorator()->CreateAccount($oUser->EntityId, '', $sEmail, $sEmail, $sPassword);
-				}
-				catch (\Exception $oException)
-				{
-					if ($oException instanceof \Aurora\Modules\Mail\Exceptions\Exception &&
-						$oException->getCode() === \Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect)
-					{
-						\Aurora\Modules\Core\Module::Decorator()->DeleteUser($oUser->EntityId);
-					}
-					throw $oException;
-				}
-			}
+			$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
 		}
 	}
 
@@ -1084,11 +1000,15 @@ class Module extends \Aurora\System\Module\AbstractModule
 	
 	public function onBeforeDeleteUser($aArgs, &$mResult)
 	{
-		$sUserPublicId = isset($aArgs["User"]) ? $aArgs["User"]->PublicId : null;
+		$oAccount = is_array($mResult) && count($mResult) > 0 ? $mResult[0] : null;
+		$sUserPublicId = $oAccount ? $oAccount->Email : null;
 		if ($sUserPublicId)
 		{
+			$this->oApiAliasesManager->deleteAliases($oAccount->EntityId);
+			
 			//remove from awm_accounts
 			$this->oApiMainManager->deleteAccount($sUserPublicId);
+			
 			//remove mailbox
 			$sScript = '/opt/afterlogic/scripts/webshell-maildirdel.sh';
 			if (file_exists($sScript))
@@ -1108,43 +1028,22 @@ class Module extends \Aurora\System\Module\AbstractModule
 			{
 				\Aurora\System\Api::Log('deleteMailDir: '.$sScript.' does not exist', \Aurora\System\Enums\LogLevel::Full);
 			}
+			
 			//remove fetchers
-			if (isset($aArgs["User"]->EntityId))
+			if ($oAccount->IdUser)
 			{
-				$mFetchers = $this->GetFetchers($aArgs["User"]->EntityId);
+				$mFetchers = $this->GetFetchers($oAccount->IdUser);
 				if ($mFetchers && is_array($mFetchers))
 				{
 					foreach ($mFetchers as $oFetcher)
 					{
-						$this->DeleteFetcher($aArgs["User"]->EntityId, $oFetcher->EntityId);
+						$this->DeleteFetcher($oAccount->IdUser, $oFetcher->EntityId);
 					}
 				}
 			}
 		}
 	}
 	
-//	public function onAfterDeleteTenant($aArgs, &$mResult)
-//	{
-//		$TenantId = $aArgs['TenantId'];
-//		
-//		$aDomains = $this->Decorator()->GetDomains($TenantId);
-//		$aDomainIds = [];
-//		if (isset($aDomains['Items']) && is_array($aDomains['Items']))
-//		{
-//			foreach ($aDomains['Items'] as $oDomain)
-//			{
-//				if ($oDomain['TenantId'] === $TenantId)
-//				{
-//					$aDomainIds[] = $oDomain['Id'];
-//				}
-//			}
-//		}
-//		if (count($aDomainIds))
-//		{
-//			$this->Decorator()->DeleteDomains($TenantId, $aDomainIds);
-//		}
-//	}
-
 	public function onAfterGetEntityList($aArgs, &$mResult)
 	{
 		if (isset($aArgs['Type']) && $aArgs['Type'] === 'User')

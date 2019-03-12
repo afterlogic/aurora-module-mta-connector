@@ -29,13 +29,14 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Domains\Storages\Def
 
 	/**
 	 * Creates domain.
+	 * @param int $iDomainId Domain identifier.
 	 * @param int $iTenantId Tenant identifier.
 	 * @param int $sDomainName Domain name.
 	 * @return boolean
 	 */
-	public function createDomain($iTenantId, $sDomainName)
+	public function createDomain($iDomainId, $iTenantId, $sDomainName)
 	{
-		$mResult = $this->oConnection->Execute($this->oCommandCreator->createDomain($iTenantId, $sDomainName));
+		$mResult = $this->oConnection->Execute($this->oCommandCreator->createDomain($iDomainId, $iTenantId, $sDomainName));
 
 		$this->throwDbExceptionIfExist();
 		

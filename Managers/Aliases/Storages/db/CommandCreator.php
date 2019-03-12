@@ -61,6 +61,20 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 			$this->escapeString($sDomain)
 		);
 	}
+	
+	/**
+	 * Creates SQL-query to delete all aliases for specified account.
+	 * @param int $iAccountId Account identifier.
+	 * @return string
+	 */
+	public function deleteAliases($iAccountId)
+	{
+		$sSql = 'DELETE FROM awm_mailaliases WHERE id_acct = %d';
+
+		return sprintf($sSql,
+			$iAccountId
+		);
+	}
 }
 
 class CommandCreatorMySQL extends CommandCreator

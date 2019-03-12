@@ -74,11 +74,25 @@ class Storage extends \Aurora\Modules\MtaConnector\Managers\Aliases\Storages\Def
 	 * @param int $iAccountId Account identifier
 	 * @param string $sName Alias name.
 	 * @param string $sDomain Alias domain.
-	 * @return string
+	 * @return boolean
 	 */
 	public function deleteAlias($iAccountId, $sName, $sDomain)
 	{
 		$mResult = $this->oConnection->Execute($this->oCommandCreator->deleteAlias($iAccountId, $sName, $sDomain));
+
+		$this->throwDbExceptionIfExist();
+		
+		return $mResult;
+	}
+	
+	/**
+	 * Deletes all aliases for specified account.
+	 * @param int $iAccountId Account identifier.
+	 * @return boolean
+	 */
+	public function deleteAliases($iAccountId)
+	{
+		$mResult = $this->oConnection->Execute($this->oCommandCreator->deleteAliases($iAccountId));
 
 		$this->throwDbExceptionIfExist();
 		
