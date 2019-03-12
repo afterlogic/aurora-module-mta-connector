@@ -71,7 +71,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		\Aurora\Modules\Core\Classes\User::extend(
 			self::GetName(),
 			[
-				'TotalQuotaBytes' => array('bigint', 1), // bytes
+				'TotalQuotaBytes' => array('bigint', self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER), // bytes
 			]
 		);		
 	}
@@ -972,20 +972,20 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		$oAccount = $mResult;
 		$oUser = \Aurora\System\Api::getUserById($oAccount->IdUser);
-		$this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->EntityId, $oUser->{'MailDomains::DomainId'});
+		if ($oAccount->Email === $oUser->PublicId)
+		{
+			$this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->EntityId, $oUser->{'MailDomains::DomainId'});
+		}
 	}
 	
 	public function onAfterCreateUser(&$aData, &$mResult)
 	{
-		$sEmail = isset($aData['PublicId']) ? $aData['PublicId'] : '';
-		$sPassword = isset($aData['Password']) ? $aData['Password'] : '';
 		$sQuotaBytes = isset($aData['QuotaBytes']) ? $aData['QuotaBytes'] : null;
 		$oUser = \Aurora\System\Api::getUserById($mResult);
-		if ($sEmail && $sPassword && $oUser instanceof \Aurora\Modules\Core\Classes\User)
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
 			$oUser->{self::GetName() . '::TotalQuotaBytes'} = (int) $sQuotaBytes;
-			\Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
-			$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
+			$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER)); // bytes to Kbytes
 		}
 	}
 
