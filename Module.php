@@ -53,7 +53,8 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
-		$this->subscribeEvent('Mail::ChangePassword::before', array($this, 'onBeforeChangePassword'));
+		$this->subscribeEvent('Mail::Account::ToResponseArray', array($this, 'onMailAccountToResponseArray'));
+		$this->subscribeEvent('Mail::ChangeAccountPassword', array($this, 'onChangeAccountPassword'));
 		
 		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
 		
@@ -906,30 +907,6 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 		return $mResult;
 	}
-	
-	/**
-	 * 
-	 * @param string $Email
-	 * @param string $Password
-	 * @param string $NewPassword
-	 * @return bool
-	 */
-	public function UpdateAccountPassword($Email, $Password, $NewPassword)
-	{
-		$bResult = false;
-
-		$oUser = \Aurora\System\Api::getAuthenticatedUser();
-		if ($oUser instanceof \Aurora\Modules\Core\Classes\User &&
-			(($oUser->Role === \Aurora\System\Enums\UserRole::NormalUser && $oUser->PublicId === $Email) ||
-			$oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin)
-		)
-		{
-			$bResult = $this->oApiMainManager->updateAccountPassword($Email, $Password, $NewPassword);
-		}
-
-		return $bResult;
-
-	}
 
 	public function GetUserQuota($UserId)
 	{
@@ -1135,17 +1112,64 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 
-	public function onBeforeChangePassword($aArguments, &$mResult)
+	/**
+	 * Checks if allowed to change password for account.
+	 * @param \Aurora\Modules\Mail\Classes\Account $oAccount
+	 * @return bool
+	 */
+	protected function checkCanChangePassword($oAccount)
 	{
-		$mResult = true;
-
-		$oAccount = \Aurora\System\Api::GetModule('Mail')->GetAccount($aArguments['AccountId']);
-
-		if ($oAccount)
+		$oCoreDecorator = \Aurora\Modules\Core\Module::Decorator();
+		$oUser = $oCoreDecorator ? $oCoreDecorator->GetUser($oAccount->IdUser) : null;
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User && $oUser->PublicId === $oAccount->Email)
 		{
-			$mResult = $this->UpdateAccountPassword($oAccount->Email, $aArguments['CurrentPassword'], $aArguments['NewPassword']);
-			return !$mResult; // break subscriptions
+			return true;
 		}
+		return false;
+	}
+	
+	/**
+	 * Adds to account response array information about if allowed to change the password for this account.
+	 * @param array $aArguments
+	 * @param mixed $mResult
+	 */
+	public function onMailAccountToResponseArray($aArguments, &$mResult)
+	{
+		$oAccount = $aArguments['Account'];
+
+		if ($oAccount && $this->checkCanChangePassword($oAccount))
+		{
+			if (!isset($mResult['Extend']) || !is_array($mResult['Extend']))
+			{
+				$mResult['Extend'] = [];
+			}
+			$mResult['Extend']['AllowChangePasswordOnMailServer'] = true;
+		}
+	}
+
+	/**
+	 * Tries to change password for account if allowed.
+	 * @param array $aArguments
+	 * @param mixed $mResult
+	 */
+	public function onChangeAccountPassword($aArguments, &$mResult)
+	{
+		$bPasswordChanged = false;
+		$bBreakSubscriptions = false;
+		
+		$oAccount = $aArguments['Account'];
+		if ($oAccount && $this->checkCanChangePassword($oAccount) && $oAccount->getPassword() === $aArguments['CurrentPassword'])
+		{
+			$bPasswordChanged = $this->oApiMainManager->updateAccountPassword($oAccount->Email, $aArguments['CurrentPassword'], $aArguments['NewPassword']);
+			$bBreakSubscriptions = true; // break if Mta connector tries to change password in this account. 
+		}
+		
+		if (is_array($mResult))
+		{
+			$mResult['AccountPasswordChanged'] = $mResult['AccountPasswordChanged'] || $bPasswordChanged;
+		}
+		
+		return $bBreakSubscriptions;
 	}
 
 	/**
