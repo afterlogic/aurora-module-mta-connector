@@ -1206,7 +1206,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 						$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
 						try
 						{
+							$bPrevState = \Aurora\System\Api::skipCheckUserRole(true);
 							$oAccount = \Aurora\Modules\Mail\Module::Decorator()->CreateAccount($oUser->EntityId, $sFriendlyName, $sLogin, $sLogin, $sPassword);
+							\Aurora\System\Api::skipCheckUserRole($bPrevState);
 							if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account)
 							{
 								$bResult = true;
