@@ -1,8 +1,17 @@
 <?php
+/**
+ * This code is licensed under AGPLv3 license or Afterlogic Software License
+ * if commercial version of the product was purchased.
+ * For full statements of the licenses see LICENSE-AFTERLOGIC and LICENSE-AGPL3 files.
+ */
 
-/* -AFTERLOGIC LICENSE HEADER- */
+namespace Aurora\Modules\MtaConnector\Classes;
 
 /**
+ * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
+ * @license https://afterlogic.com/products/common-licensing Afterlogic Software License
+ * @copyright Copyright (c) 2019, Afterlogic Corp.
+ * 
  * @property int $IdUser
  * @property int $IdAccount
  * 
@@ -29,13 +38,7 @@
  * @property bool $IsLocked
  * @property int $CheckInterval
  * @property int $CheckLastTime
- *
- * @package Users
- * @subpackage Classes
  */
-
-namespace Aurora\Modules\MtaConnector\Classes;
-
 class Fetcher extends \Aurora\System\EAV\Entity
 {
 	protected $aStaticMap = array(
