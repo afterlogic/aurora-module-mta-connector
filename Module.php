@@ -237,8 +237,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if ($oUser && $oUser instanceof \Aurora\Modules\Core\Classes\User
 			&& $this->getConfig('AllowFetchers', false)
 			&& (
-				($oUser->Role === \Aurora\System\Enums\UserRole::NormalUser
-					&& $oUser->EntityId === $UserId)
+				($oUser->isNormalOrTenant() && $oUser->EntityId === $UserId)
 				|| $oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin
 			)
 		)
@@ -672,7 +671,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if ($oUser instanceof \Aurora\Modules\Core\Classes\User &&
 			$this->getConfig('AllowFetchers', false) &&
 			(
-				$oUser->Role === \Aurora\System\Enums\UserRole::NormalUser &&
+				$oUser->isNormalOrTenant() &&
 				$oUser->EntityId === $UserId
 			) ||
 			$oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin
@@ -915,7 +914,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		//Only owner or superadmin can get quota
 		if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
-			if ($oUser->Role === \Aurora\System\Enums\UserRole::NormalUser && $oUser->EntityId === $UserId)
+			if ($oUser->isNormalOrTenant() && $oUser->EntityId === $UserId)
 			{
 				$iResult = $oUser->{self::GetName() . '::TotalQuotaBytes'};
 			}
