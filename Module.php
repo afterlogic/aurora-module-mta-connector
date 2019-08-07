@@ -1207,13 +1207,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 								$bResult = true;
 								$iTime = $bSignMe ? 0 : time();
 								$sAuthToken = \Aurora\System\Api::UserSession()->Set(
-									[
-										'token' => 'auth',
-										'sign-me' => $bSignMe,
-										'id' => $oAccount->IdUser,
-										'account' => $oAccount->EntityId,
-										'account_type' => $oAccount->getName()
-									], $iTime);
+									\Aurora\System\UserSession::getTokenData($oAccount, $bSignMe),
+									$iTime
+								);
 								$mResult = ['AuthToken' => $sAuthToken];
 							}
 						}
