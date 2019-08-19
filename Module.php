@@ -49,7 +49,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Core::GetUsers::after', array($this, 'onAfterGetUsers'));
 		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
 		
-		$this->subscribeEvent('Mail::CreateAccount::after', array($this, 'onAfterCreateAccount'));
+		$this->subscribeEvent('Mail::CreateAccount::before', array($this, 'onBeforeCreateAccount'));
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
@@ -942,11 +942,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 	
-	public function onAfterCreateAccount(&$aData, &$mResult)
+	public function onBeforeCreateAccount(&$aData, &$mResult)
 	{
-		$oAccount = $mResult;
-		$oUser = \Aurora\System\Api::getUserById($oAccount->IdUser);
-		if ($oAccount->Email === $oUser->PublicId)
+		$iUserId = $aData['UserId'];
+		$oUser = \Aurora\System\Api::getUserById($iUserId);
+		if ($aData['Email'] === $oUser->PublicId)
 		{
 			$this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->EntityId, $oUser->{'MailDomains::DomainId'});
 		}
