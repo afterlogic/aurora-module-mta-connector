@@ -938,7 +938,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if (is_array($aServers) && count($aServers) === 0)
 		{
 			$mServerId = $oMailDecorator->CreateServer('localhost', 'localhost', 143, false, 'localhost', 25, false, 
-				\Aurora\Modules\Mail\Enums\SmtpAuthType::NoAuthentication, '*', true, false, 4190);
+				\Aurora\Modules\Mail\Enums\SmtpAuthType::UseUserCredentials, '*', true, false, 4190);
 		}
 	}
 	
