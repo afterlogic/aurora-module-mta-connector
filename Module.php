@@ -959,6 +959,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 		{
 			$oUser->{self::GetName() . '::TotalQuotaBytes'} = (int) $sQuotaBytes;
+			\Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
 			$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER)); // bytes to Kbytes
 		}
 	}
