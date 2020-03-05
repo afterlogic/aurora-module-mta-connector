@@ -946,7 +946,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		$iUserId = $aData['UserId'];
 		$oUser = \Aurora\System\Api::getUserById($iUserId);
-		if ($aData['Email'] === $oUser->PublicId)
+		if (\Aurora\Modules\Mail\Module::getInstance()->checkAccess(null, $aData['UserId']) && $aData['Email'] === $oUser->PublicId)
 		{
 			$this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->EntityId, $oUser->{'MailDomains::DomainId'});
 		}
@@ -975,6 +975,19 @@ class Module extends \Aurora\System\Module\AbstractModule
 	
 	public function onBeforeDeleteUser($aArgs, &$mResult)
 	{
+		$oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
+		
+		$oUser = self::Decorator()->GetUserUnchecked($aArgs['UserId']);
+		
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User && $oAuthenticatedUser->Role === \Aurora\System\Enums\UserRole::TenantAdmin && $oUser->IdTenant === $oAuthenticatedUser->IdTenant)
+		{
+			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
+		}
+		else
+		{
+			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		}
+
 		$oAccount = is_array($mResult) && count($mResult) > 0 ? $mResult[0] : null;
 		$sUserPublicId = $oAccount ? $oAccount->Email : null;
 		if ($sUserPublicId)
