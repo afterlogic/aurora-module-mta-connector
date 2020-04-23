@@ -161,7 +161,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *	}
 	 * 
 	 * @apiParam {string=MtaConnector} Module Module name
-	 * @apiParam {string=GetServers} Method Method name
+	 * @apiParam {string=GetFetchers} Method Method name
 	 * @apiParam {string} [Parameters] JSON.stringified object<br>
 	 * {<br>
 	 * &emsp; **UserId** *int* (optional) User identifier.<br>
@@ -935,7 +935,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		$oMailDecorator = \Aurora\Modules\Mail\Module::Decorator();
 		$aServers = $oMailDecorator->GetServers();
-		if (is_array($aServers) && count($aServers) === 0)
+		if (is_array($aServers) && $aServers['Count'] === 0)
 		{
 			$mServerId = $oMailDecorator->CreateServer('localhost', 'localhost', 143, false, 'localhost', 25, false, 
 				\Aurora\Modules\Mail\Enums\SmtpAuthType::UseUserCredentials, '*', true, false, 4190);
