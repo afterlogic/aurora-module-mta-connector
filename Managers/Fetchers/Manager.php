@@ -133,7 +133,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 			$oFetcher = $this->getFetcher($iEntityId);
 			if ($oFetcher)
 			{
-				$bResult = $this->oEavManager->deleteEntity($iEntityId);
+				$bResult = $this->oEavManager->deleteEntity($iEntityId, \Aurora\Modules\MtaConnector\Classes\Fetcher::class);
 			}
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)
