@@ -946,7 +946,8 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		$iUserId = $aData['UserId'];
 		$oUser = \Aurora\System\Api::getUserById($iUserId);
-		if (\Aurora\Modules\Mail\Module::getInstance()->checkAccess(null, $aData['UserId']) && $aData['Email'] === $oUser->PublicId)
+		\Aurora\Modules\Mail\Module::getInstance()->checkAccess(null, $aData['UserId']);
+		if ($aData['Email'] === $oUser->PublicId)
 		{
 			$this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->EntityId, $oUser->{'MailDomains::DomainId'});
 		}
