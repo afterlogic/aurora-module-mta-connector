@@ -794,7 +794,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			if ($DomainId !== 0)
 			{
-				$oDomain = self::Decorator()->GetDomain($DomainId);
+				$oDomain = \Aurora\Modules\MailDomains\Module::Decorator()->GetDomain($DomainId);
 				if ($oDomain)
 				{
 					$TenantId = $oDomain->TenantId;
@@ -978,7 +978,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		$oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
 		
-		$oUser = self::Decorator()->GetUserUnchecked($aArgs['UserId']);
+		$oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($aArgs['UserId']);
 		
 		if ($oUser instanceof \Aurora\Modules\Core\Classes\User && $oAuthenticatedUser->Role === \Aurora\System\Enums\UserRole::TenantAdmin && $oUser->IdTenant === $oAuthenticatedUser->IdTenant)
 		{
