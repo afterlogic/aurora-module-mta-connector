@@ -20,46 +20,46 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 	public $oApiMainManager = null;
 
-	/* 
+	/*
 	 * @var $oApiFetchersManager Managers\Fetchers
 	 */
 	public $oApiFetchersManager = null;
-			
-	/* 
+
+	/*
 	 * @var $oApiAliasesManager Managers\Aliases
 	 */
 	public $oApiAliasesManager = null;
-			
-	/* 
+
+	/*
 	 * @var $oApiMailingListsManager Managers\MailingLists
 	 */
 	public $oApiMailingListsManager = null;
-			
-	/* 
+
+	/*
 	 * @var $oApiMtaDomainsManager Managers\Domains
 	 */
 	public $oApiMtaDomainsManager = null;
-			
+
 	public function init()
 	{
 		$this->subscribeEvent('Core::CreateUser::after', array($this, 'onAfterCreateUser'));
 		$this->subscribeEvent('Core::UpdateUser::after', array($this, 'onAfterUpdateUser'));
-		
+
 		$this->subscribeEvent('Core::CreateTables::after', array($this, 'onAfterCreateTables'));
 		$this->subscribeEvent('Core::GetUsers::after', array($this, 'onAfterGetUsers'));
 		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
-		
+
 		$this->subscribeEvent('Mail::CreateAccount::before', array($this, 'onBeforeCreateAccount'));
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
 		$this->subscribeEvent('Mail::Account::ToResponseArray', array($this, 'onMailAccountToResponseArray'));
 		$this->subscribeEvent('Mail::ChangeAccountPassword', array($this, 'onChangeAccountPassword'));
-		
+
 		$this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
-		
+
 		$this->subscribeEvent('MailSignup::Signup::after', array($this, 'onAfterSignup'), 90);
-		
+
 		$this->subscribeEvent('MailDomains::CreateDomain::after', array($this, 'onAfterCreateDomain'));
 		$this->subscribeEvent('MailDomains::DeleteDomains::after', array($this, 'onAfterDeleteDomain'));
 
@@ -74,7 +74,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			[
 				'TotalQuotaBytes' => array('bigint', self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER), // bytes
 			]
-		);		
+		);
 	}
 
 	protected function getDomainsManager()
@@ -82,50 +82,50 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$oMailDomainsModule = \Aurora\System\Api::GetModule('MailDomains');
 		return $oMailDomainsModule->getDomainsManager();
 	}
-	
+
 	/***** public functions might be called with web API *****/
 	/**
 	 * @apiDefine MtaConnector MtaConnector Module
 	 * MtaConnector module. It provides PHP and Web APIs for managing fetchers and other MtaConnector features.
 	 */
-	
+
 	/**
 	 * @api {post} ?/Api/ GetSettings
 	 * @apiName GetSettings
 	 * @apiGroup MtaConnector
 	 * @apiDescription Obtains list of module settings for authenticated user.
-	 * 
+	 *
 	 * @apiHeader {string} [Authorization] "Bearer " + Authentication token which was received as the result of Core.Login method.
 	 * @apiHeaderExample {json} Header-Example:
 	 *	{
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
-	 * 
+	 *
 	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=GetSettings} Method Method name
-	 * 
+	 *
 	 * @apiParamExample {json} Request-Example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'GetSettings'
 	 * }
-	 * 
+	 *
 	 * @apiSuccess {object[]} Result Array of response objects.
 	 * @apiSuccess {string} Result.Module Module name.
 	 * @apiSuccess {string} Result.Method Method name.
 	 * @apiSuccess {mixed} Result.Result List of module settings in case of success, otherwise **false**.
-	 * 
+	 *
 	 * @apiSuccess {boolean} Result.Result.AllowFetchers=false Indicates if fetchers are allowed.
-	 * 
+	 *
 	 * @apiSuccess {int} [Result.ErrorCode] Error code
-	 * 
+	 *
 	 * @apiSuccessExample {json} Success response example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'GetSettings',
 	 *	Result: { AllowFetchers: false }
 	 * }
-	 * 
+	 *
 	 * @apiSuccessExample {json} Error response example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -141,38 +141,38 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function GetSettings()
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
-		
+
 		return array(
 			'AllowFetchers' => $this->getConfig('AllowFetchers', false),
 			'UserDefaultQuotaMB' => $this->getConfig('UserDefaultQuotaMB', false)
 		);
 	}
-	
+
 	/**
 	 * @api {post} ?/Api/ GetFetchers
 	 * @apiName GetFetchers
 	 * @apiGroup MtaConnector
 	 * @apiDescription Obtains all fetchers of specified user.
-	 * 
+	 *
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
 	 * @apiHeaderExample {json} Header-Example:
 	 *	{
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
-	 * 
+	 *
 	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=GetFetchers} Method Method name
 	 * @apiParam {string} [Parameters] JSON.stringified object<br>
 	 * {<br>
 	 * &emsp; **UserId** *int* (optional) User identifier.<br>
 	 * }
-	 * 
+	 *
 	 * @apiParamExample {json} Request-Example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'GetFetchers'
 	 * }
-	 * 
+	 *
 	 * @apiSuccess {object[]} Result Array of response objects.
 	 * @apiSuccess {string} Result.Module Module name.
 	 * @apiSuccess {string} Result.Method Method name.
@@ -201,7 +201,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * @apiSuccess {boolean} Result.Result.IncomingUseSsl Indicates if SSL should be used on POP3 server.
 	 * @apiSuccess {boolean} Result.Result.OutgoingUseSsl Indicates if SSL should be used on SMTP server.
 	 * @apiSuccess {int} [Result.ErrorCode] Error code
-	 * 
+	 *
 	 * @apiSuccessExample {json} Success response example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -215,7 +215,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *				"CheckLastTime": 0, "IncomingUseSsl": true, "OutgoingUseSsl": true },
 	 *			  ... ]
 	 * }
-	 * 
+	 *
 	 * @apiSuccessExample {json} Error response example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -247,19 +247,19 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		return $mResult;
 	}
-	
+
 	/**
 	 * @api {post} ?/Api/ CreateFetcher
 	 * @apiName CreateFetcher
 	 * @apiGroup MtaConnector
 	 * @apiDescription Creates fetcher.
-	 * 
+	 *
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
 	 * @apiHeaderExample {json} Header-Example:
 	 *	{
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
-	 * 
+	 *
 	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=CreateFetcher} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
@@ -273,7 +273,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * &emsp; **IncomingUseSsl** *boolean* Indicates if SSL should be used.<br>
 	 * &emsp; **LeaveMessagesOnServer** *boolean* Indicates if messages shouldn't be removed from POP3 server during fetching.<br>
 	 * }
-	 * 
+	 *
 	 * @apiParamExample {json} Request-Example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -282,20 +282,20 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *					"IncomingPassword": "pass_value", "IncomingServer": "pop.server.com",
 	 *					"IncomingPort": 110, "IncomingUseSsl": false, "LeaveMessagesOnServer": true }'
 	 * }
-	 * 
+	 *
 	 * @apiSuccess {object[]} Result Array of response objects.
 	 * @apiSuccess {string} Result.Module Module name.
 	 * @apiSuccess {string} Result.Method Method name.
 	 * @apiSuccess {mixed} Result.Result Identifier of created fetcher in case of success, otherwise **false**.
 	 * @apiSuccess {int} [Result.ErrorCode] Error code
-	 * 
+	 *
 	 * @apiSuccessExample {json} Success response example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'CreateFetcher',
 	 *	Result: 14
 	 * }
-	 * 
+	 *
 	 * @apiSuccessExample {json} Error response example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -321,7 +321,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$IncomingServer, $IncomingPort, $IncomingUseSsl, $LeaveMessagesOnServer)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
-		
+
 		if ($this->getConfig('AllowFetchers', false))
 		{
 			$oFetcher = new \Aurora\Modules\MtaConnector\Classes\Fetcher(self::GetName());
@@ -335,27 +335,27 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oFetcher->IncomingMailSecurity = $IncomingUseSsl ? \MailSo\Net\Enumerations\ConnectionSecurityType::SSL : \MailSo\Net\Enumerations\ConnectionSecurityType::NONE;
 			$oFetcher->LeaveMessagesOnServer = $LeaveMessagesOnServer;
 			$oFetcher->Folder = $Folder;
-			
+
 			$oFetcher->CheckInterval = $this->getConfig('FetchersIntervalMinutes', 20);
 
 			return $this->oApiFetchersManager->createFetcher($oFetcher);
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * @api {post} ?/Api/ UpdateFetcher
 	 * @apiName UpdateFetcher
 	 * @apiGroup MtaConnector
 	 * @apiDescription Updates fetcher.
-	 * 
+	 *
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
 	 * @apiHeaderExample {json} Header-Example:
 	 *	{
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
-	 * 
+	 *
 	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=UpdateFetcher} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
@@ -369,7 +369,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * &emsp; **LeaveMessagesOnServer** *boolean* Indicates if messages shouldn't be removed from POP3 server during fetching.<br>
 	 * &emsp; **IncomingPassword** *string* Fetcher account password.<br>
 	 * }
-	 * 
+	 *
 	 * @apiParamExample {json} Request-Example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -378,20 +378,20 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *		"IncomingServer": "pop.server.com", "IncomingPort": 110, "IncomingUseSsl": false,
 	 *		"LeaveMessagesOnServer": true, "IncomingPassword": "pass_value" }'
 	 * }
-	 * 
+	 *
 	 * @apiSuccess {object[]} Result Array of response objects.
 	 * @apiSuccess {string} Result.Module Module name.
 	 * @apiSuccess {string} Result.Method Method name.
 	 * @apiSuccess {boolean} Result.Result Indicates if fetcher was updated successfully.
 	 * @apiSuccess {int} [Result.ErrorCode] Error code
-	 * 
+	 *
 	 * @apiSuccessExample {json} Success response example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateFetcher',
 	 *	Result: true
 	 * }
-	 * 
+	 *
 	 * @apiSuccessExample {json} Error response example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -417,7 +417,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$IncomingUseSsl, $LeaveMessagesOnServer, $IncomingPassword = null)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
-		
+
 		if ($this->getConfig('AllowFetchers', false))
 		{
 			$oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
@@ -437,22 +437,22 @@ class Module extends \Aurora\System\Module\AbstractModule
 				return $this->oApiFetchersManager->updateFetcher($oFetcher, true);
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * @api {post} ?/Api/ UpdateFetcherSmtpSettings
 	 * @apiName UpdateFetcherSmtpSettings
 	 * @apiGroup MtaConnector
 	 * @apiDescription Updates fetcher SMTP settings.
-	 * 
+	 *
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
 	 * @apiHeaderExample {json} Header-Example:
 	 *	{
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
-	 * 
+	 *
 	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=UpdateFetcherSmtpSettings} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
@@ -466,7 +466,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * &emsp; **OutgoingUseSsl** *boolean* Indicates if SSL should be used.<br>
 	 * &emsp; **OutgoingUseAuth** *boolean* Indicates if SMTP connect should be authenticated.<br>
 	 * }
-	 * 
+	 *
 	 * @apiParamExample {json} Request-Example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -475,20 +475,20 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *		"IsOutgoingEnabled": true, "OutgoingServer": "smtp.server.com", "OutgoingPort": 25,
 	 *		"OutgoingUseSsl": false, "OutgoingUseAuth": false }'
 	 * }
-	 * 
+	 *
 	 * @apiSuccess {object[]} Result Array of response objects.
 	 * @apiSuccess {string} Result.Module Module name.
 	 * @apiSuccess {string} Result.Method Method name.
 	 * @apiSuccess {boolean} Result.Result Indicates if fetcher was updated successfully.
 	 * @apiSuccess {int} [Result.ErrorCode] Error code
-	 * 
+	 *
 	 * @apiSuccessExample {json} Success response example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateFetcherSmtpSettings',
 	 *	Result: true
 	 * }
-	 * 
+	 *
 	 * @apiSuccessExample {json} Error response example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -514,7 +514,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$OutgoingServer, $OutgoingPort, $OutgoingUseSsl, $OutgoingUseAuth)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
-		
+
 		if ($this->getConfig('AllowFetchers', false))
 		{
 			$oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
@@ -531,22 +531,22 @@ class Module extends \Aurora\System\Module\AbstractModule
 				return $this->oApiFetchersManager->updateFetcher($oFetcher, false);
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * @api {post} ?/Api/ UpdateSignature
 	 * @apiName UpdateSignature
 	 * @apiGroup MtaConnector
 	 * @apiDescription Updates fetcher signature.
-	 * 
+	 *
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
 	 * @apiHeaderExample {json} Header-Example:
 	 *	{
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
-	 * 
+	 *
 	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=UpdateSignature} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
@@ -555,27 +555,27 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * &emsp; **UseSignature** *boolean* Indicates if signature should be used in outgoing mails.<br>
 	 * &emsp; **Signature** *string* Fetcher signature.<br>
 	 * }
-	 * 
+	 *
 	 * @apiParamExample {json} Request-Example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateSignature',
 	 *	Parameters: '{ "FetcherId": 14, "UseSignature": true, "Signature": "signature_value" }'
 	 * }
-	 * 
+	 *
 	 * @apiSuccess {object[]} Result Array of response objects.
 	 * @apiSuccess {string} Result.Module Module name.
 	 * @apiSuccess {string} Result.Method Method name.
 	 * @apiSuccess {boolean} Result.Result Indicates if signature was updated successfully.
 	 * @apiSuccess {int} [Result.ErrorCode] Error code
-	 * 
+	 *
 	 * @apiSuccessExample {json} Success response example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'UpdateSignature',
 	 *	Result: true
 	 * }
-	 * 
+	 *
 	 * @apiSuccessExample {json} Error response example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -596,7 +596,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function UpdateSignature($UserId, $FetcherId = null, $UseSignature = null, $Signature = null)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
-		
+
 		if ($this->getConfig('AllowFetchers', false))
 		{
 			$oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
@@ -610,46 +610,46 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		return false;
 	}
-	
+
 	/**
 	 * @api {post} ?/Api/ DeleteFetcher
 	 * @apiName DeleteFetcher
 	 * @apiGroup MtaConnector
 	 * @apiDescription Deletes fetcher.
-	 * 
+	 *
 	 * @apiHeader {string} Authorization "Bearer " + Authentication token which was received as the result of Core.Login method.
 	 * @apiHeaderExample {json} Header-Example:
 	 *	{
 	 *		"Authorization": "Bearer 32b2ecd4a4016fedc4abee880425b6b8"
 	 *	}
-	 * 
+	 *
 	 * @apiParam {string=MtaConnector} Module Module name
 	 * @apiParam {string=DeleteFetcher} Method Method name
 	 * @apiParam {string} Parameters JSON.stringified object<br>
 	 * {<br>
 	 * &emsp; **FetcherId** *int* Fetcher identifier.<br>
 	 * }
-	 * 
+	 *
 	 * @apiParamExample {json} Request-Example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'DeleteFetcher',
 	 *	Parameters: '{ "FetcherId": 14 }'
 	 * }
-	 * 
+	 *
 	 * @apiSuccess {object[]} Result Array of response objects.
 	 * @apiSuccess {string} Result.Module Module name.
 	 * @apiSuccess {string} Result.Method Method name.
 	 * @apiSuccess {boolean} Result.Result Indicates if fetcher was deleted successfully.
 	 * @apiSuccess {int} [Result.ErrorCode] Error code
-	 * 
+	 *
 	 * @apiSuccessExample {json} Success response example:
 	 * {
 	 *	Module: 'MtaConnector',
 	 *	Method: 'DeleteFetcher',
 	 *	Result: true
 	 * }
-	 * 
+	 *
 	 * @apiSuccessExample {json} Error response example:
 	 * {
 	 *	Module: 'MtaConnector',
@@ -686,7 +686,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		return $mResult;
 	}
-	
+
 	/**
 	 * Obtains all aliases for specified user.
 	 * @param int $UserId User identifier.
@@ -695,7 +695,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function GetAliases($UserId)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-		
+
 		$oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($UserId);
 		$oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId, $oUser->EntityId);
 		if ($oAccount)
@@ -707,10 +707,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 				'Aliases' => $aAliases
 			];
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Creates new alias with specified name and domain.
 	 * @param int $UserId User identifier.
@@ -721,7 +721,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function AddNewAlias($UserId, $AliasName, $AliasDomain)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-		
+
 		$oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($UserId);
 		$oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
 		$oAccount = $oUser && $oMailDecorator ? $oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->EntityId) : null;
@@ -729,10 +729,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 		{
 			return $this->oApiAliasesManager->addAlias($oAccount->EntityId, $AliasName, $AliasDomain, $oAccount->Email);
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Deletes aliases with specified emails.
 	 * @param int $UserId User identifier
@@ -742,7 +742,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function DeleteAlias($UserId, $Aliases)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-		
+
 		$mResult = false;
 		$oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($UserId);
 		$oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
@@ -760,10 +760,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 				}
 			}
 		}
-		
+
 		return $mResult;
 	}
-	
+
 	/**
 	 * Creates mailing list.
 	 * @param int $DomainId Domain identifier.
@@ -773,10 +773,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function CreateMailingList($DomainId = 0, $Email = '')
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-		
+
 		return $this->oApiMailingListsManager->createMailingList($DomainId, $Email);
 	}
-	
+
 	/**
 	 * Obtains all mailing lists for specified tenant.
 	 * @param int $TenantId Tenant identifier.
@@ -789,7 +789,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function GetMailingLists($TenantId = 0, $DomainId = 0, $Search = '', $Offset = 0, $Limit = 0)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-		
+
 		if ($TenantId === 0)
 		{
 			if ($DomainId !== 0)
@@ -809,10 +809,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 				'Items' => $aMailingLists
 			];
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Deletes mailing lists.
 	 * @param int $IdList List of mailing list identifiers.
@@ -828,7 +828,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 		return $mResult;
 	}
-	
+
 	/**
 	 * Obtains all mailing list members.
 	 * @param int $Id Mailing list identifier.
@@ -837,10 +837,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function GetMailingListMembers($Id)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-		
+
 		return $this->oApiMailingListsManager->getMailingListMembers($Id);
 	}
-	
+
 	/**
 	 * Adds new member to mailing list.
 	 * @param int $ListId Mailing list identifier.
@@ -850,12 +850,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function AddMailingListMember($ListId, $ListTo)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-		
+
 		$sListName = $this->oApiMailingListsManager->getMailingListEmail($ListId);
-		
+
 		return $this->oApiMailingListsManager->addMember($ListId, $sListName, $ListTo);
 	}
-	
+
 	/**
 	 * Deletes member from mailing list.
 	 * @param int $ListId Mailing list identifier.
@@ -865,7 +865,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function DeleteMailingListMembers($ListId, $Members)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-		
+
 		$bResult = false;
 		foreach ($Members as $sListName)
 		{
@@ -873,12 +873,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 		return $bResult;
 	}
-	
+
 	public function onAfterCreateDomain($aArgs, &$mResult)
 	{
 		$this->oApiMtaDomainsManager->createDomain($mResult, $aArgs['TenantId'], $aArgs['DomainName']);
 	}
-	
+
 	public function onAfterDeleteDomain($aArgs, &$mResult)
 	{
 		$mResult = false;
@@ -898,7 +898,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			{
 				self::Decorator()->DeleteMailingLists($aMailingListIds);
 			}
-			
+
 			// remove domain
 			$mResult = $this->oApiMtaDomainsManager->deleteDomain($iDomainId);
 		}
@@ -937,11 +937,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$aServers = $oMailDecorator->GetServers();
 		if (is_array($aServers) && $aServers['Count'] === 0)
 		{
-			$mServerId = $oMailDecorator->CreateServer('localhost', 'localhost', 143, false, 'localhost', 25, false, 
+			$mServerId = $oMailDecorator->CreateServer('localhost', 'localhost', 143, false, 'localhost', 25, false,
 				\Aurora\Modules\Mail\Enums\SmtpAuthType::UseUserCredentials, '*', true, false, 4190);
 		}
 	}
-	
+
 	public function onBeforeCreateAccount(&$aData, &$mResult)
 	{
 		$iUserId = $aData['UserId'];
@@ -952,7 +952,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->EntityId, $oUser->{'MailDomains::DomainId'});
 		}
 	}
-	
+
 	public function onAfterCreateUser(&$aData, &$mResult)
 	{
 		$sQuotaBytes = isset($aData['QuotaBytes']) ? $aData['QuotaBytes'] : null;
@@ -973,13 +973,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$aArgs['Fetcher'] = $oFetcher;
 		}
 	}
-	
+
 	public function onBeforeDeleteUser($aArgs, &$mResult)
 	{
 		$oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
-		
+
 		$oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($aArgs['UserId']);
-		
+
 		if ($oUser instanceof \Aurora\Modules\Core\Classes\User && $oAuthenticatedUser->Role === \Aurora\System\Enums\UserRole::TenantAdmin && $oUser->IdTenant === $oAuthenticatedUser->IdTenant)
 		{
 			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
@@ -994,10 +994,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if ($sUserPublicId)
 		{
 			$this->oApiAliasesManager->deleteAliases($oAccount->EntityId);
-			
+
 			//remove from awm_accounts
 			$this->oApiMainManager->deleteAccount($sUserPublicId);
-			
+
 			//remove mailbox
 			$sScript = '/opt/afterlogic/scripts/webshell-maildirdel.sh';
 			if (file_exists($sScript))
@@ -1017,7 +1017,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			{
 				\Aurora\System\Api::Log('deleteMailDir: '.$sScript.' does not exist', \Aurora\System\Enums\LogLevel::Full);
 			}
-			
+
 			//remove fetchers
 			if ($oAccount->IdUser)
 			{
@@ -1032,7 +1032,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			}
 		}
 	}
-	
+
 	public function onAfterGetUsers($aArgs, &$mResult)
 	{
 		foreach ($mResult['Items'] as &$aUser)
@@ -1049,7 +1049,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		if (isset($aArgs['UserId']))
 		{
-			$oUser = \Aurora\System\Api::getUserById($aArgs['Id']);
+			$oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
 			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 			{
 				//Update quota
@@ -1135,7 +1135,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Adds to account response array information about if allowed to change the password for this account.
 	 * @param array $aArguments
@@ -1164,19 +1164,19 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		$bPasswordChanged = false;
 		$bBreakSubscriptions = false;
-		
+
 		$oAccount = $aArguments['Account'];
 		if ($oAccount && $this->checkCanChangePassword($oAccount) && $oAccount->getPassword() === $aArguments['CurrentPassword'])
 		{
 			$bPasswordChanged = $this->oApiMainManager->updateAccountPassword($oAccount->Email, $aArguments['CurrentPassword'], $aArguments['NewPassword']);
-			$bBreakSubscriptions = true; // break if Mta connector tries to change password in this account. 
+			$bBreakSubscriptions = true; // break if Mta connector tries to change password in this account.
 		}
-		
+
 		if (is_array($mResult))
 		{
 			$mResult['AccountPasswordChanged'] = $mResult['AccountPasswordChanged'] || $bPasswordChanged;
 		}
-		
+
 		return $bBreakSubscriptions;
 	}
 
