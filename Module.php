@@ -989,7 +989,6 @@ class Module extends \Aurora\System\Module\AbstractModule
 			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		}
 
-		//$oAccount = is_array($mResult) && count($mResult) > 0 ? $mResult[0] : null;
 		$oAccount = \Aurora\Modules\Core\Module::Decorator()->GetAccountUsedToAuthorize($oUser->PublicId);
 		$sUserPublicId = $oAccount ? $oAccount->Email : null;
 		if ($sUserPublicId)
