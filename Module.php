@@ -62,6 +62,8 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		$this->subscribeEvent('MailDomains::CreateDomain::after', array($this, 'onAfterCreateDomain'));
 		$this->subscribeEvent('MailDomains::DeleteDomains::after', array($this, 'onAfterDeleteDomain'));
+		
+		$this->subscribeEvent('StandardResetPassword::ChangeAccountPassword', array($this, 'onChangeAccountPassword'));
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
 		$this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
@@ -1166,10 +1168,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$bBreakSubscriptions = false;
 
 		$oAccount = $aArguments['Account'];
-		if ($oAccount && $this->checkCanChangePassword($oAccount) && $oAccount->getPassword() === $aArguments['CurrentPassword'])
+		$bSkipCurrentPasswordCheck = isset($aArguments['SkipCurrentPasswordCheck']) && $aArguments['SkipCurrentPasswordCheck'];
+		$sCurrentPassword = $bSkipCurrentPasswordCheck ? $oAccount->getPassword() : $aArguments['CurrentPassword'];
+		if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account
+				&& $this->checkCanChangePassword($oAccount)
+				&& ($oAccount->getPassword() === $sCurrentPassword))
 		{
-			$bPasswordChanged = $this->oApiMainManager->updateAccountPassword($oAccount->Email, $aArguments['CurrentPassword'], $aArguments['NewPassword']);
-			$bBreakSubscriptions = true; // break if Mta connector tries to change password in this account.
+			$bPasswordChanged = $this->oApiMainManager->updateAccountPassword($oAccount->Email, $sCurrentPassword, $aArguments['NewPassword']);
+			$bBreakSubscriptions = true; // break if MTA connector tries to change password in this account.
 		}
 
 		if (is_array($mResult))
