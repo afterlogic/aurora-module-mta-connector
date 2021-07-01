@@ -62,7 +62,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		$this->subscribeEvent('MailDomains::CreateDomain::after', array($this, 'onAfterCreateDomain'));
 		$this->subscribeEvent('MailDomains::DeleteDomains::after', array($this, 'onAfterDeleteDomain'));
-		
+
 		$this->subscribeEvent('StandardResetPassword::ChangeAccountPassword', array($this, 'onChangeAccountPassword'));
 
 		$this->oApiMainManager = new Managers\Main\Manager($this);
@@ -1208,41 +1208,38 @@ class Module extends \Aurora\System\Module\AbstractModule
 			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
 			{
 				$sDomain = \MailSo\Base\Utils::GetDomainFromEmail($oUser->PublicId);
-				$aDomain = $this->getDomainsManager()->getDomainByName($sDomain);
-				if (is_array($aDomain) && isset($aDomain['DomainId']))
+				$oDomain = $this->getDomainsManager()->getDomainByName($sDomain, 0);
+				if ($oDomain)
 				{
 					$sQuotaBytes = (int) $this->getConfig('UserDefaultQuotaMB', 1) * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER; //Mbytes to bytes
 					$oUser->{$this->GetName() . '::TotalQuotaBytes'} = $sQuotaBytes;
 					\Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
-					$mResult = $this->oApiMainManager->createAccount($sLogin, $sPassword, $oUser->EntityId, $aDomain['DomainId']);
-					if ($mResult)
+
+					try
 					{
-						$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
-						try
+						$bPrevState = \Aurora\System\Api::skipCheckUserRole(true);
+						$oAccount = \Aurora\Modules\Mail\Module::Decorator()->CreateAccount($oUser->EntityId, $sFriendlyName, $sLogin, $sLogin, $sPassword);
+						\Aurora\System\Api::skipCheckUserRole($bPrevState);
+						if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account)
 						{
-							$bPrevState = \Aurora\System\Api::skipCheckUserRole(true);
-							$oAccount = \Aurora\Modules\Mail\Module::Decorator()->CreateAccount($oUser->EntityId, $sFriendlyName, $sLogin, $sLogin, $sPassword);
-							\Aurora\System\Api::skipCheckUserRole($bPrevState);
-							if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account)
-							{
-								$bResult = true;
-								$iTime = $bSignMe ? 0 : time();
-								$sAuthToken = \Aurora\System\Api::UserSession()->Set(
-									\Aurora\System\UserSession::getTokenData($oAccount, $bSignMe),
-									$iTime
-								);
-								$mResult = ['AuthToken' => $sAuthToken];
-							}
+							$this->oApiMainManager->updateUserMailQuota($oUser->EntityId, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
+							$bResult = true;
+							$iTime = $bSignMe ? 0 : time();
+							$sAuthToken = \Aurora\System\Api::UserSession()->Set(
+								\Aurora\System\UserSession::getTokenData($oAccount, $bSignMe),
+								$iTime
+							);
+							$mResult = ['AuthToken' => $sAuthToken];
 						}
-						catch (\Exception $oException)
+					}
+					catch (\Exception $oException)
+					{
+						if ($oException instanceof \Aurora\Modules\Mail\Exceptions\Exception &&
+							$oException->getCode() === \Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect)
 						{
-							if ($oException instanceof \Aurora\Modules\Mail\Exceptions\Exception &&
-								$oException->getCode() === \Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect)
-							{
-								\Aurora\Modules\Core\Module::Decorator()->DeleteUser($oUser->EntityId);
-							}
-							throw $oException;
+							\Aurora\Modules\Core\Module::Decorator()->DeleteUser($oUser->EntityId);
 						}
+						throw $oException;
 					}
 				}
 			}
