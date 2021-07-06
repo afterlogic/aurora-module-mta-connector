@@ -55,7 +55,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 		{
 			$this->testPop3Connect($oFetcher);
 			$this->oEavManager->saveEntity($oFetcher);
-			return $oFetcher->EntityId;
+			return $oFetcher->Id;
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)
 		{
