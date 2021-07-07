@@ -37,7 +37,8 @@ class CreateFetchersTable extends Migration
             $table->boolean('IsLocked')->default(false);
             $table->integer('CheckInterval')->default(0);
             $table->integer('CheckLastTime')->default(0);
-            $table->timestamps();
+            $table->timestamp(\Aurora\System\Classes\Model::CREATED_AT)->nullable();
+            $table->timestamp(\Aurora\System\Classes\Model::UPDATED_AT)->nullable();
         });
     }
 
