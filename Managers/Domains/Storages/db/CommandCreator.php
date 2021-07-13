@@ -28,7 +28,7 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		return sprintf($sSql,
 			$iDomainId,
 			$iTenantId,
-			$this->escapeString(trim($sDomainName))
+			$this->escapeString($sDomainName)
 		);
 	}
 	

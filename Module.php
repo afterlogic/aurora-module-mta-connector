@@ -881,7 +881,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 	public function onAfterCreateDomain($aArgs, &$mResult)
 	{
-		$this->oApiMtaDomainsManager->createDomain($mResult, $aArgs['TenantId'], $aArgs['DomainName']);
+		$this->oApiMtaDomainsManager->createDomain($mResult, $aArgs['TenantId'], \trim($aArgs['DomainName']));
 	}
 
 	public function onAfterDeleteDomain($aArgs, &$mResult)
