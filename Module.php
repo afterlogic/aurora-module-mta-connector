@@ -969,10 +969,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 	public function onBeforeSendOrSaveMessage(&$aArgs, &$mResult)
 	{
-		$oFetcher = $this->oApiFetchersManager->getFetcher($aArgs['FetcherID']);
-		if ($oFetcher && $oFetcher->IdUser === $aArgs['UserId'])
+		if (isset($aArgs['FetcherID']) && !empty($aArgs['FetcherID']))
 		{
-			$aArgs['Fetcher'] = $oFetcher;
+			$oFetcher = $this->oApiFetchersManager->getFetcher($aArgs['FetcherID']);
+			if ($oFetcher && $oFetcher->IdUser === $aArgs['UserId'])
+			{
+				$aArgs['Fetcher'] = $oFetcher;
+			}
 		}
 	}
 
