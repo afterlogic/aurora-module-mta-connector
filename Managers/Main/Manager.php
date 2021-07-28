@@ -24,17 +24,23 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 
 	public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId)
 	{
+		$sEmail = \MailSo\Base\Utils::idn()->encode($sEmail);
+
 		return $this->oStorage->createAccount($sEmail, self::EncodePassword($sPassword), $iUserId, $iDomainId);
 	}
 	
 	public function updateAccountPassword($sEmail, $sPassword, $sNewPassword)
 	{
+		$sEmail = \MailSo\Base\Utils::idn()->encode($sEmail);
+
 		return $this->oStorage->updateAccountPassword($sEmail, $sPassword, self::EncodePassword($sNewPassword));
 	}	
 	
 
 	public function deleteAccount($sEmail)
 	{
+		$sEmail = \MailSo\Base\Utils::idn()->encode($sEmail);
+
 		return $this->oStorage->deleteAccount($sEmail);
 	}
 
@@ -105,6 +111,8 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	 */
 	public function getAccountByEmail($sAccountEmail)
 	{
-		return $this->oStorage->getAccountByEmail(\trim($sAccountEmail));
+		$sAccountEmail = \MailSo\Base\Utils::idn()->encode(trim($sAccountEmail));
+
+		return $this->oStorage->getAccountByEmail($sAccountEmail);
 	}
 }
