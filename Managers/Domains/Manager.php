@@ -31,7 +31,9 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	 */
 	public function createDomain($iDomainId, $iTenantId, $sDomainName)
 	{
-		$sDomainName = \MailSo\Base\Utils::idn()->encode($sDomainName);
+		if(mb_detect_encoding($sDomainName) != "ASCII") {
+			$sDomainName = \MailSo\Base\Utils::idn()->encode($sDomainName);
+		}
 
 		if ($this->getDomainByName($sDomainName))
 		{
@@ -87,7 +89,9 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 	 */
 	public function getDomainByName($sDomainName)
 	{
-		$sDomainName = \MailSo\Base\Utils::idn()->encode($sDomainName);
+		if(mb_detect_encoding($sDomainName) != "ASCII") {
+			$sDomainName = \MailSo\Base\Utils::idn()->encode($sDomainName);
+		}
 		
 		return $this->oStorage->getDomainByName($sDomainName);
 	}
