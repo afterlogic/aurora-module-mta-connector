@@ -37,6 +37,10 @@ class Fetcher extends \Aurora\System\Classes\Model
 		'CheckInterval',
 		'CheckLastTime'
 	];
+
+	protected $casts = [
+		'IncomingPassword' => \Aurora\System\Casts\Encrypt::class
+	];
 	
 	public function toResponseArray()
 	{
