@@ -9,6 +9,7 @@ namespace Aurora\Modules\MtaConnector\Models;
 
 class Fetcher extends \Aurora\System\Classes\Model
 {
+	protected $table = 'mail_fetchers';
 	protected $fillable = [
 		'IdUser',
 		'IdAccount',

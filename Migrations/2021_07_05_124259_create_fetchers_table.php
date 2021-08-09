@@ -13,7 +13,7 @@ class CreateFetchersTable extends Migration
      */
     public function up()
     {
-        Capsule::schema()->create('fetchers', function (Blueprint $table) {
+        Capsule::schema()->create('mail_fetchers', function (Blueprint $table) {
             $table->id('Id');
             $table->integer('IdUser')->default(0);
             $table->integer('IdAccount')->default(0);
@@ -49,6 +49,6 @@ class CreateFetchersTable extends Migration
      */
     public function down()
     {
-        Capsule::schema()->dropIfExists('fetchers');
+        Capsule::schema()->dropIfExists('mail_fetchers');
     }
 }
