@@ -11,6 +11,7 @@ class Fetcher extends \Aurora\System\Classes\Model
 {
 	protected $table = 'mail_fetchers';
 	protected $fillable = [
+		'Id',
 		'IdUser',
 		'IdAccount',
 
