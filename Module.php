@@ -50,7 +50,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		$this->subscribeEvent('Core::CreateTables::after', array($this, 'onAfterCreateTables'));
 		$this->subscribeEvent('Core::GetUsers::after', array($this, 'onAfterGetUsers'));
-		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
+		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'), 90);
 
 		$this->subscribeEvent('Mail::CreateAccount::before', array($this, 'onBeforeCreateAccount'));
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
