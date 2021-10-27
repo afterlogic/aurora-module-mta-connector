@@ -1167,12 +1167,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$bPasswordChanged = false;
 		$bBreakSubscriptions = false;
 
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
 		$oAccount = $aArguments['Account'];
 		$bSkipCurrentPasswordCheck = isset($aArguments['SkipCurrentPasswordCheck']) && $aArguments['SkipCurrentPasswordCheck'];
 		$sCurrentPassword = $bSkipCurrentPasswordCheck ? $oAccount->getPassword() : $aArguments['CurrentPassword'];
 		if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account
 				&& $this->checkCanChangePassword($oAccount)
-				&& ($oAccount->getPassword() === $sCurrentPassword))
+				&& ($oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin || $oAccount->getPassword() === $sCurrentPassword))
 		{
 			$bPasswordChanged = $this->oApiMainManager->updateAccountPassword($oAccount->Email, $sCurrentPassword, $aArguments['NewPassword']);
 			$bBreakSubscriptions = true; // break if MTA connector tries to change password in this account.
