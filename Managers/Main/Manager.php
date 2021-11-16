@@ -36,6 +36,12 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 		return $this->oStorage->updateAccountPassword($sEmail, $sPassword, self::EncodePassword($sNewPassword));
 	}	
 	
+	public function updateAccountPasswordByEmail($sEmail, $sNewPassword)
+	{
+		$sEmail = \MailSo\Base\Utils::idn()->encode($sEmail);
+
+		return $this->oStorage->updateAccountPasswordByEmail($sEmail, self::EncodePassword($sNewPassword));
+	}	
 
 	public function deleteAccount($sEmail)
 	{

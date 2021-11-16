@@ -57,6 +57,21 @@ class CommandCreator extends \Aurora\System\Db\AbstractCommandCreator
 		return '';
 	}
 
+	public function updateAccountPasswordByEmail($sEmail, $sNewPassword)
+	{
+		if (!empty($sEmail) && !empty($sNewPassword))
+		{
+			$sSql = 'UPDATE awm_accounts set password = %s where email = %s';
+
+			return sprintf($sSql,
+				$this->escapeString($sNewPassword),
+				$this->escapeString($sEmail)
+			);
+		}
+
+		return '';
+	}
+
 	/**
 	 *
 	 * @param string $sEmail

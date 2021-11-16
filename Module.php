@@ -1179,7 +1179,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 				&& $this->checkCanChangePassword($oAccount)
 				&& ($oAccount->getPassword() === $sCurrentPassword))
 		{
-			$bPasswordChanged = $this->oApiMainManager->updateAccountPassword($oAccount->Email, $sCurrentPassword, $aArguments['NewPassword']);
+			if ($bSkipCurrentPasswordCheck)
+			{
+				$bPasswordChanged = $this->oApiMainManager->updateAccountPasswordByEmail($oAccount->Email, $aArguments['NewPassword']);
+			}
+			else
+			{
+				$bPasswordChanged = $this->oApiMainManager->updateAccountPassword($oAccount->Email, $sCurrentPassword, $aArguments['NewPassword']);
+			}
 			$bBreakSubscriptions = true; // break if MTA connector tries to change password in this account.
 		}
 
