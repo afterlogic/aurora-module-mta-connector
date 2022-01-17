@@ -1068,7 +1068,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 					$iTotalQuotaBytes =  $oUser->{self::GetName() . '::TotalQuotaBytes'};
 					$iFileUsageBytes = $oUser->{'PersonalFiles::UsedSpace'};
 					$iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
-					$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 1);
+					$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
 				}
 				//Update password
 				if (isset($aArgs['Password']) && trim($aArgs['Password']) !== '')
@@ -1100,7 +1100,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$iFileUsageBytes = $mResult['Used'];
 				$iMailQuotaUsageBytes = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
 				$iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
-				$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 1);
+				$this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
 				$mResult['Limit'] = $iTotalQuotaBytes;
 				$mResult['Used'] = $mResult['Used']  + $iMailQuotaUsageBytes;
 			}
