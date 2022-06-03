@@ -1014,7 +1014,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
 
 				\Aurora\System\Api::Log('deleteMailDir / exec: '.$sCmd, \Aurora\System\Enums\LogLevel::Full);
-				$sReturn = trim(shell_exec($sCmd));
+				$shell_exec_result = shell_exec($sCmd);
+				if (!empty($shell_exec_result)) {
+					$sReturn = trim(shell_exec($sCmd));
+				} else {
+					$sReturn = '';
+				}
 				if (!empty($sReturn))
 				{
 					\Aurora\System\Api::Log('deleteMailDir / exec result: '.$sReturn, \Aurora\System\Enums\LogLevel::Full);
