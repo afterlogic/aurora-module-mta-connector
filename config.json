@@ -8,15 +8,15 @@
 		"bool"
     ],
     "FetchersCronMpopScript": [
-        "",
+        "/usr/bin/mpop",
         "string"
     ],
     "FetchersCronMpopDataFolder": [
-        "",
+        "/opt/afterlogic/data",
         "string"
     ],
     "FetchersCronDeliveryScript": [
-        "",
+        "/usr/lib/dovecot/dovecot-lda",
         "string"
 	],
     "FetchersIntervalMinutes": [

@@ -87,7 +87,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 			$query->where('IdUser', $iUserId);
 		}
 
-		return $query->get()->toArray();
+		return $query->get();
 	}
 
 	/**
