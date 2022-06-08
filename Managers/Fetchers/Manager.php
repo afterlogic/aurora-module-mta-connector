@@ -87,7 +87,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 			$query->where('IdUser', $iUserId);
 		}
 
-		return $query->get();
+		return $query->get()->all();
 	}
 
 	/**
@@ -123,7 +123,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 			$oFetcher = $this->getFetcher($iEntityId);
 			if ($oFetcher)
 			{
-				$oFetcher->delete();
+				$bResult = $oFetcher->delete();
 			}
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)

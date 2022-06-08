@@ -685,7 +685,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
 			if ($oFetcher && $oFetcher->IdUser === $UserId)
 			{
-				$mResult = $this->oApiFetchersManager->deleteFetcher($FetcherId);
+				$mResult = $oFetcher->delete();
 			}
 		}
 
@@ -1036,9 +1036,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$mFetchers = $this->GetFetchers($oAccount->IdUser);
 				if ($mFetchers && is_array($mFetchers))
 				{
-					foreach ($mFetchers as $oFetcher)
+					foreach ($mFetchers as $aFetcher)
 					{
-						$this->DeleteFetcher($oAccount->IdUser, $oFetcher->Id);
+						$this->DeleteFetcher($oAccount->IdUser, $aFetcher['Id']);
 					}
 				}
 			}
