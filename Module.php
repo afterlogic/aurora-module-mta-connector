@@ -247,7 +247,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			)
 		)
 		{
-			$mResult = $this->oApiFetchersManager->getFetchers($UserId);
+			$mResult = $this->oApiFetchersManager->getFetchers($UserId)->toArray();
 		}
 
 		return $mResult;
@@ -685,7 +685,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
 			if ($oFetcher && $oFetcher->IdUser === $UserId)
 			{
-				$mResult = $this->oApiFetchersManager->deleteFetcher($FetcherId);
+				$mResult = $oFetcher->delete();
 			}
 		}
 
@@ -1014,7 +1014,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
 
 				\Aurora\System\Api::Log('deleteMailDir / exec: '.$sCmd, \Aurora\System\Enums\LogLevel::Full);
-				$sReturn = trim(shell_exec($sCmd));
+				$shell_exec_result = shell_exec($sCmd);
+				if (!empty($shell_exec_result)) {
+					$sReturn = trim(shell_exec($sCmd));
+				} else {
+					$sReturn = '';
+				}
 				if (!empty($sReturn))
 				{
 					\Aurora\System\Api::Log('deleteMailDir / exec result: '.$sReturn, \Aurora\System\Enums\LogLevel::Full);
@@ -1031,9 +1036,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$mFetchers = $this->GetFetchers($oAccount->IdUser);
 				if ($mFetchers && is_array($mFetchers))
 				{
-					foreach ($mFetchers as $oFetcher)
+					foreach ($mFetchers as $aFetcher)
 					{
-						$this->DeleteFetcher($oAccount->IdUser, $oFetcher->Id);
+						$this->DeleteFetcher($oAccount->IdUser, $aFetcher['Id']);
 					}
 				}
 			}

@@ -43,6 +43,15 @@ class Fetcher extends \Aurora\System\Classes\Model
 	protected $casts = [
 		'IncomingPassword' => \Aurora\System\Casts\Encrypt::class
 	];
+
+	protected $appends = [
+        'EntityId'
+    ];
+
+    public function getEntityIdAttribute()
+    {
+        return $this->Id;
+    }
 	
 	public function toResponseArray()
 	{

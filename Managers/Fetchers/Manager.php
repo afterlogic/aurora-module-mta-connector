@@ -7,6 +7,8 @@
 
 namespace Aurora\Modules\MtaConnector\Managers\Fetchers;
 
+use Aurora\Modules\MtaConnector\Models\Fetcher;
+
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
  * @license https://afterlogic.com/products/common-licensing Afterlogic Software License
@@ -15,18 +17,11 @@ namespace Aurora\Modules\MtaConnector\Managers\Fetchers;
 class Manager extends \Aurora\System\Managers\AbstractManager
 {
 	/**
-	 * @var \Aurora\System\Managers\Eav
-	 */
-	public $oEavManager = null;
-	
-	/**
 	 * @param \Aurora\System\Module\AbstractModule $oModule
 	 */
 	public function __construct(\Aurora\System\Module\AbstractModule $oModule = null)
 	{
 		parent::__construct($oModule);
-		
-		$this->oEavManager = \Aurora\System\Managers\Eav::getInstance();
 	}
 
 	/**
@@ -54,7 +49,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 		try
 		{
 			$this->testPop3Connect($oFetcher);
-			$this->oEavManager->saveEntity($oFetcher);
+			$oFetcher->save();
 			return $oFetcher->Id;
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)
@@ -73,7 +68,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 		{
 			throw new \Aurora\Modules\Mail\Exceptions\Exception(\Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect, $oException, $oException->getMessage());
 		}
-		catch (Exception $oException)
+		catch (\Exception $oException)
 		{
 			throw new \Aurora\Modules\Mail\Exceptions\Exception(\Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect, $oException, $oException->getMessage());
 		}
@@ -87,29 +82,24 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 	 */
 	public function getFetchers($iUserId = null)
 	{
-		$iOffset = 0;
-		$iLimit = 0;
-		$aFilters = $iUserId === null ? [] : ['IdUser' => [$iUserId, '=']];
+		$query = Fetcher::query();
+		if ($iUserId !== null) {
+			$query->where('IdUser', $iUserId);
+		}
 
-		return $this->oEavManager->getEntities(
-			\Aurora\Modules\MtaConnector\Classes\Fetcher::class,
-			array(),
-			$iOffset,
-			$iLimit,
-			$aFilters
-		);
+		return $query->get()->all();
 	}
 
 	/**
 	 * Obtains specified fetcher.
 	 * @param int $iEntityId Identifier of fetcher to obtain.
-	 * @return boolean
+	 * @return Fetcher
 	 */
 	public function getFetcher($iEntityId)
 	{
 		try
 		{
-			return $this->oEavManager->getEntity($iEntityId, \Aurora\Modules\MtaConnector\Classes\Fetcher::class);
+			return Fetcher::find($iEntityId);
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)
 		{
@@ -133,7 +123,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 			$oFetcher = $this->getFetcher($iEntityId);
 			if ($oFetcher)
 			{
-				$bResult = $this->oEavManager->deleteEntity($iEntityId, \Aurora\Modules\MtaConnector\Classes\Fetcher::class);
+				$bResult = $oFetcher->delete();
 			}
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)
@@ -158,7 +148,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 			{
 				$this->testPop3Connect($oFetcher);
 			}
-			return $this->oEavManager->saveEntity($oFetcher);
+			return $oFetcher->save();
 		}
 		catch (\Aurora\System\Exceptions\BaseException $oException)
 		{
@@ -176,7 +166,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
 		{
 			throw new \Aurora\Modules\Mail\Exceptions\Exception(\Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect, $oException, $oException->getMessage());
 		}
-		catch (Exception $oException)
+		catch (\Exception $oException)
 		{
 			throw new \Aurora\Modules\Mail\Exceptions\Exception(\Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect, $oException, $oException->getMessage());
 		}
