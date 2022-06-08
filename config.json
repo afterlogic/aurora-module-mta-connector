@@ -1,58 +1,58 @@
 {
-  "Disabled": [
-    false,
-    "bool"
-  ],
-  "Disabled_Description": [
-    "",
-    "string"
-  ],
-  "AllowFetchers": [
-    false,
-    "bool"
-  ],
-  "AllowFetchers_Description": [
-    "",
-    "string"
-  ],
-  "FetchersCronMpopScript": [
-    "/usr/bin/mpop",
-    "string"
-  ],
-  "FetchersCronMpopScript_Description": [
-    "",
-    "string"
-  ],
-  "FetchersCronMpopDataFolder": [
-    "/opt/afterlogic/data",
-    "string"
-  ],
-  "FetchersCronMpopDataFolder_Description": [
-    "",
-    "string"
-  ],
-  "FetchersCronDeliveryScript": [
-    "/usr/lib/dovecot/dovecot-lda",
-    "string"
-  ],
-  "FetchersCronDeliveryScript_Description": [
-    "",
-    "string"
-  ],
-  "FetchersIntervalMinutes": [
-    20,
-    "int"
-  ],
-  "FetchersIntervalMinutes_Description": [
-    "",
-    "string"
-  ],
-  "UserDefaultQuotaMB": [
-    200,
-    "int"
-  ],
-  "UserDefaultQuotaMB_Description": [
-    "",
-    "string"
-  ]
+	"Disabled": [
+		false,
+		"bool"
+	],
+	"Disabled_Description": [
+		"",
+		"string"
+	],
+	"AllowFetchers": [
+		false,
+		"bool"
+	],
+	"AllowFetchers_Description": [
+		"",
+		"string"
+	],
+	"FetchersCronMpopScript": [
+		"/usr/bin/mpop",
+		"string"
+	],
+	"FetchersCronMpopScript_Description": [
+		"",
+		"string"
+	],
+	"FetchersCronMpopDataFolder": [
+		"/opt/afterlogic/data",
+		"string"
+	],
+	"FetchersCronMpopDataFolder_Description": [
+		"",
+		"string"
+	],
+	"FetchersCronDeliveryScript": [
+		"/usr/lib/dovecot/dovecot-lda",
+		"string"
+	],
+	"FetchersCronDeliveryScript_Description": [
+		"",
+		"string"
+	],
+	"FetchersIntervalMinutes": [
+		20,
+		"int"
+	],
+	"FetchersIntervalMinutes_Description": [
+		"",
+		"string"
+	],
+	"UserDefaultQuotaMB": [
+		200,
+		"int"
+	],
+	"UserDefaultQuotaMB_Description": [
+		"",
+		"string"
+	]
 }
