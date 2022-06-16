@@ -247,7 +247,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			)
 		)
 		{
-			$mResult = $this->oApiFetchersManager->getFetchers($UserId)->toArray();
+			$mResult = $this->oApiFetchersManager->getFetchers($UserId);
 		}
 
 		return $mResult;
