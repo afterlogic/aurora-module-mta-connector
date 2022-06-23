@@ -4,7 +4,7 @@
 		"bool"
 	],
 	"Disabled_Description": [
-		"",
+		"Setting to true disables the module",
 		"string"
 	],
 	"AllowFetchers": [
@@ -12,7 +12,7 @@
 		"bool"
 	],
 	"AllowFetchers_Description": [
-		"",
+		"If true, Add POP3 Fetcher option becomes available in Email Accounts area of Settings screen",
 		"string"
 	],
 	"FetchersCronMpopScript": [
@@ -20,7 +20,7 @@
 		"string"
 	],
 	"FetchersCronMpopScript_Description": [
-		"",
+		"Defines location of mpop binary",
 		"string"
 	],
 	"FetchersCronMpopDataFolder": [
@@ -28,7 +28,7 @@
 		"string"
 	],
 	"FetchersCronMpopDataFolder_Description": [
-		"",
+		"Defines location of mailserver data directory",
 		"string"
 	],
 	"FetchersCronDeliveryScript": [
@@ -36,7 +36,7 @@
 		"string"
 	],
 	"FetchersCronDeliveryScript_Description": [
-		"",
+		"Defines location of local delivery agent",
 		"string"
 	],
 	"FetchersIntervalMinutes": [
@@ -44,7 +44,7 @@
 		"int"
 	],
 	"FetchersIntervalMinutes_Description": [
-		"",
+		"Interval of running fetcher script, in minutes; should match the interval set in cronjob",
 		"string"
 	],
 	"UserDefaultQuotaMB": [
@@ -52,7 +52,7 @@
 		"int"
 	],
 	"UserDefaultQuotaMB_Description": [
-		"",
+		"Default size for new mailboxes created, in Mbytes",
 		"string"
 	]
 }
