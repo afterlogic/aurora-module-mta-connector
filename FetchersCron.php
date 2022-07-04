@@ -171,7 +171,9 @@ class CronFetcher
 			$aFetchers = $this->oApiFetchersManager->getFetchers();
 			foreach ($aFetchers as $oFetcher)
 			{
-				$this->ExecuteFetcher($oFetcher);
+				if ($oFetcher->IsEnabled) {
+					$this->ExecuteFetcher($oFetcher);
+				}
 			}
 		}
 
