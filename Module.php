@@ -73,13 +73,6 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->oApiAliasesManager = new Managers\Aliases\Manager($this);
 		$this->oApiMailingListsManager = new Managers\MailingLists\Manager($this);
 		$this->oApiMtaDomainsManager = new Managers\Domains\Manager($this);
-
-		\Aurora\Modules\Core\Classes\User::extend(
-			self::GetName(),
-			[
-				'TotalQuotaBytes' => array('bigint', self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER), // bytes
-			]
-		);
 	}
 
 	protected function getDomainsManager()
