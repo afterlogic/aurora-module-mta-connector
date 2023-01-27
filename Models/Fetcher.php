@@ -9,42 +9,42 @@ namespace Aurora\Modules\MtaConnector\Models;
 
 class Fetcher extends \Aurora\System\Classes\Model
 {
-	protected $table = 'mail_fetchers';
-	protected $fillable = [
-		'Id',
-		'IdUser',
-		'IdAccount',
+    protected $table = 'mail_fetchers';
+    protected $fillable = [
+        'Id',
+        'IdUser',
+        'IdAccount',
 
-		'IsEnabled',
-		'IncomingServer',
-		'IncomingPort',
-		'IncomingMailSecurity',
-		'IncomingLogin',
-		'IncomingPassword',
-		'LeaveMessagesOnServer',
-		'Folder',
-		
-		'IsOutgoingEnabled',
-		'Name',
-		'Email',
-		'OutgoingServer',
-		'OutgoingPort',
-		'OutgoingMailSecurity',
-		'OutgoingUseAuth',
-		
-		'UseSignature',
-		'Signature',
+        'IsEnabled',
+        'IncomingServer',
+        'IncomingPort',
+        'IncomingMailSecurity',
+        'IncomingLogin',
+        'IncomingPassword',
+        'LeaveMessagesOnServer',
+        'Folder',
 
-		'IsLocked',
-		'CheckInterval',
-		'CheckLastTime'
-	];
+        'IsOutgoingEnabled',
+        'Name',
+        'Email',
+        'OutgoingServer',
+        'OutgoingPort',
+        'OutgoingMailSecurity',
+        'OutgoingUseAuth',
 
-	protected $casts = [
-		'IncomingPassword' => \Aurora\System\Casts\Encrypt::class
-	];
+        'UseSignature',
+        'Signature',
 
-	protected $appends = [
+        'IsLocked',
+        'CheckInterval',
+        'CheckLastTime'
+    ];
+
+    protected $casts = [
+        'IncomingPassword' => \Aurora\System\Casts\Encrypt::class
+    ];
+
+    protected $appends = [
         'EntityId'
     ];
 
@@ -52,15 +52,15 @@ class Fetcher extends \Aurora\System\Classes\Model
     {
         return $this->Id;
     }
-	
-	public function toResponseArray()
-	{
-		$aResponse = parent::toResponseArray();
-		$aResponse['IncomingUseSsl'] = $aResponse['IncomingMailSecurity'] === \MailSo\Net\Enumerations\ConnectionSecurityType::SSL;
-		unset($aResponse['IncomingMailSecurity']);
-		$aResponse['OutgoingUseSsl'] = $aResponse['OutgoingMailSecurity'] === \MailSo\Net\Enumerations\ConnectionSecurityType::SSL;
-		unset($aResponse['OutgoingMailSecurity']);
-		unset($aResponse['IncomingPassword']);
-		return $aResponse;
-	}
+
+    public function toResponseArray()
+    {
+        $aResponse = parent::toResponseArray();
+        $aResponse['IncomingUseSsl'] = $aResponse['IncomingMailSecurity'] === \MailSo\Net\Enumerations\ConnectionSecurityType::SSL;
+        unset($aResponse['IncomingMailSecurity']);
+        $aResponse['OutgoingUseSsl'] = $aResponse['OutgoingMailSecurity'] === \MailSo\Net\Enumerations\ConnectionSecurityType::SSL;
+        unset($aResponse['OutgoingMailSecurity']);
+        unset($aResponse['IncomingPassword']);
+        return $aResponse;
+    }
 }

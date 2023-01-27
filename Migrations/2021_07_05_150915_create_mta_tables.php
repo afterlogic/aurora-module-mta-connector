@@ -14,7 +14,7 @@ class CreateMtaTables extends Migration
     public function up()
     {
         Capsule::connection()->statement(
-"CREATE TABLE IF NOT EXISTS `awm_accounts` (
+            "CREATE TABLE IF NOT EXISTS `awm_accounts` (
 	`id_acct` INT(11) NOT NULL AUTO_INCREMENT,
 	`id_user` INT(11) NOT NULL DEFAULT '0',
 	`id_domain` INT(11) NOT NULL DEFAULT '0',
@@ -34,7 +34,7 @@ ENGINE=InnoDB;"
         );
 
         Capsule::connection()->statement(
-"CREATE TABLE IF NOT EXISTS `awm_account_quotas` (
+            "CREATE TABLE IF NOT EXISTS `awm_account_quotas` (
 	`name` VARCHAR(100) NOT NULL DEFAULT '',
 	`mail_quota_usage_bytes` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
 	`quota_usage_messages` INT(10) UNSIGNED NOT NULL DEFAULT '0',
@@ -45,7 +45,7 @@ ENGINE=InnoDB;"
         );
 
         Capsule::connection()->statement(
-"CREATE TABLE IF NOT EXISTS `awm_domains` (
+            "CREATE TABLE IF NOT EXISTS `awm_domains` (
 	`id_domain` INT(11) NOT NULL AUTO_INCREMENT,
 	`id_tenant` INT(11) NOT NULL DEFAULT '0',
 	`name` VARCHAR(255) NULL DEFAULT NULL,
@@ -56,7 +56,7 @@ ENGINE=InnoDB;"
         );
 
         Capsule::connection()->statement(
-"CREATE TABLE IF NOT EXISTS `awm_mailaliases` (
+            "CREATE TABLE IF NOT EXISTS `awm_mailaliases` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`id_acct` INT(11) NULL DEFAULT NULL,
 	`alias_name` VARCHAR(255) NOT NULL DEFAULT '',
@@ -70,7 +70,7 @@ ENGINE=InnoDB;"
         );
 
         Capsule::connection()->statement(
-"CREATE TABLE IF NOT EXISTS `awm_mailinglists` (
+            "CREATE TABLE IF NOT EXISTS `awm_mailinglists` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`id_acct` INT(11) NULL DEFAULT NULL,
 	`list_name` VARCHAR(255) NOT NULL DEFAULT '',
