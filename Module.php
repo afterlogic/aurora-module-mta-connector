@@ -710,7 +710,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($UserId);
+        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
         $oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId, $oUser->Id);
         if ($oAccount) {
             $sDomain = preg_match('/.+@(.+)$/', $oAccount->Email, $aMatches) && $aMatches[1] ? $aMatches[1] : '';
@@ -735,7 +735,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($UserId);
+        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
         $oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
         $oAccount = $oUser && $oMailDecorator ? $oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
@@ -756,7 +756,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
         $mResult = false;
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($UserId);
+        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
         $oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
         $oAccount = $oUser && $oMailDecorator ? $oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
@@ -981,7 +981,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         $oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
 
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($aArgs['UserId']);
+        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($aArgs['UserId']);
 
         if ($oUser instanceof User && $oAuthenticatedUser->Role === \Aurora\System\Enums\UserRole::TenantAdmin && $oUser->IdTenant === $oAuthenticatedUser->IdTenant) {
             \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
@@ -1034,7 +1034,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         foreach ($mResult['Items'] as &$aUser) {
             if (count($aUser) > 0) {
-                $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($aUser['Id']);
+                $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($aUser['Id']);
                 $aUser['QuotaBytes'] = $oUser instanceof User ? $oUser->{self::GetName() . '::TotalQuotaBytes'} : 0;
             }
         }
@@ -1112,7 +1112,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     protected function checkCanChangePassword($oAccount)
     {
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($oAccount->IdUser);
+        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($oAccount->IdUser);
         if ($oUser instanceof User && $oUser->PublicId === $oAccount->Email) {
             return true;
         }
