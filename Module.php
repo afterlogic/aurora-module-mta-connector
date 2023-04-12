@@ -329,7 +329,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
         if ($this->getConfig('AllowFetchers', false)) {
-            $oFetcher = new Models\Fetcher();
+            $oFetcher = new \Aurora\Modules\Mail\Models\Fetcher();
             $oFetcher->IdUser = $UserId;
             $oFetcher->IdAccount = $AccountId;
 
