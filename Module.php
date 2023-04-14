@@ -42,12 +42,12 @@ class Module extends \Aurora\System\Module\AbstractModule
      * @var $oApiMtaDomainsManager Managers\Domains
      */
     public $oApiMtaDomainsManager = null;
-    
+
     /*
      * @var \Aurora\Modules\Mail\Module
      */
     public $oMailDecorator = null;
- 
+
     /*
      * @var \Aurora\Modules\MailDomains\Module
      */
@@ -347,8 +347,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $IncomingPort,
         $IncomingUseSsl,
         $LeaveMessagesOnServer
-    )
-    {
+    ) {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
         if ($this->getConfig('AllowFetchers', false)) {
@@ -451,8 +450,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $IncomingUseSsl,
         $LeaveMessagesOnServer,
         $IncomingPassword = null
-    )
-    {
+    ) {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
         if ($this->getConfig('AllowFetchers', false)) {
@@ -554,8 +552,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $OutgoingPort,
         $OutgoingUseSsl,
         $OutgoingUseAuth
-    )
-    {
+    ) {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
         if ($this->getConfig('AllowFetchers', false)) {
