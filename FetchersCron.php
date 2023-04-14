@@ -27,9 +27,12 @@ class CronFetcher
 
     public function __construct()
     {
-        $this->oMtaConnectorModule =  \Aurora\System\Api::GetModule('MtaConnector');
+        /** @var \Aurora\Modules\MtaConnector\Module $oMtaConnectorModule */
+        $oMtaConnectorModule = \Aurora\System\Api::GetModule('MtaConnector');
+        $this->oMtaConnectorModule = $oMtaConnectorModule;
         $this->oApiFetchersManager = $this->oMtaConnectorModule->oApiFetchersManager;
 
+        /** @var \Aurora\Modules\Mail\Module $oMailModule */
         $oMailModule =  \Aurora\System\Api::GetModule('Mail');
         $this->oApiAccountsManager = $oMailModule->getAccountsManager();
 
@@ -53,7 +56,7 @@ class CronFetcher
             preg_match('/(.+)@(.+)$/', $oAccount->Email, $aMatches);
             $sLogin = '';
             $sDomain = '';
-            if (isset($aMatches) && count($aMatches) > 1) {
+            if ($aMatches && count($aMatches) > 1) {
                 $sLogin = $aMatches[1];
                 $sDomain = $aMatches[2];
             }

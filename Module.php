@@ -42,6 +42,16 @@ class Module extends \Aurora\System\Module\AbstractModule
      * @var $oApiMtaDomainsManager Managers\Domains
      */
     public $oApiMtaDomainsManager = null;
+    
+    /*
+     * @var \Aurora\Modules\Mail\Module
+     */
+    public $oMailDecorator = null;
+ 
+    /*
+     * @var \Aurora\Modules\MailDomains\Module
+     */
+    public $oMailDomainsDecorator = null;
 
     public function init()
     {
@@ -73,13 +83,26 @@ class Module extends \Aurora\System\Module\AbstractModule
         $this->oApiAliasesManager = new Managers\Aliases\Manager($this);
         $this->oApiMailingListsManager = new Managers\MailingLists\Manager($this);
         $this->oApiMtaDomainsManager = new Managers\Domains\Manager($this);
+
+        $this->oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
+        $this->oMailDomainsDecorator = \Aurora\System\Api::GetModuleDecorator('MailDomains');
     }
 
-    protected function getDomainsManager()
+    /**
+     *
+     * @return Module
+     */
+    public static function Decorator()
     {
-        $oMailDomainsModule = \Aurora\System\Api::GetModule('MailDomains');
-        return $oMailDomainsModule->getDomainsManager();
+        return parent::Decorator();
     }
+
+    // protected function getDomainsManager()
+    // {
+    //     /** @var \Aurora\Modules\MailDomains\Module $oMailDomainsModule */
+    //     $oMailDomainsModule = \Aurora\System\Api::GetModule('MailDomains');
+    //     return $oMailDomainsModule->getDomainsManager();
+    // }
 
     /***** public functions might be called with web API *****/
     /**
@@ -711,7 +734,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
         $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
-        $oAccount = \Aurora\System\Api::GetModuleDecorator('Mail')->GetAccountByEmail($oUser->PublicId, $oUser->Id);
+        $oAccount = $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id);
         if ($oAccount) {
             $sDomain = preg_match('/.+@(.+)$/', $oAccount->Email, $aMatches) && $aMatches[1] ? $aMatches[1] : '';
             $aAliases = $this->oApiAliasesManager->getAliases($oAccount->Id);
@@ -736,8 +759,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
         $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
-        $oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
-        $oAccount = $oUser && $oMailDecorator ? $oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
+        $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             return $this->oApiAliasesManager->addAlias($oAccount->Id, $AliasName, $AliasDomain, $oAccount->Email);
         }
@@ -757,8 +779,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
         $mResult = false;
         $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
-        $oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
-        $oAccount = $oUser && $oMailDecorator ? $oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
+        $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             foreach ($Aliases as $sAlias) {
                 preg_match('/(.+)@(.+)$/', $sAlias, $aMatches);
@@ -801,7 +822,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
         if ($TenantId === 0) {
             if ($DomainId !== 0) {
-                $oDomain = \Aurora\Modules\MailDomains\Module::Decorator()->GetDomain($DomainId);
+                $oDomain = $this->oMailDomainsDecorator->GetDomain($DomainId);
                 if ($oDomain) {
                     $TenantId = $oDomain->TenantId;
                 }
@@ -1051,7 +1072,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                     \Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
                     //Update mail quota
                     $iTotalQuotaBytes =  $oUser->{self::GetName() . '::TotalQuotaBytes'};
-                    $iFileUsageBytes = $oUser->{'PersonalFiles::UsedSpace'};
+                    $iFileUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
                     $iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
                     $this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
                 }
@@ -1095,7 +1116,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $oAccount instanceof \Aurora\Modules\Mail\Models\MailAccount &&
                 $oUser->PublicId === $oAccount->Email) {
                 $mResult = [];
-                $iFilesQuotaUsageBytes = $oUser->{'PersonalFiles::UsedSpace'};
+                $iFilesQuotaUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
                 $iMailQuotaUsageBytes = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
                 $mResult[0] = (int) (($iFilesQuotaUsageBytes + $iMailQuotaUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
                 $mResult[1] = (int) ($oUser->{self::GetName() . '::TotalQuotaBytes'} / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
@@ -1107,7 +1128,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
     /**
      * Checks if allowed to change password for account.
-     * @param \Aurora\Modules\Mail\Classes\Account $oAccount
+     * @param \Aurora\Modules\Mail\Models\MailAccount $oAccount
      * @return bool
      */
     protected function checkCanChangePassword($oAccount)
@@ -1171,7 +1192,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      * Creates account with credentials specified in registration form
      *
      * @param array $aArgs New account credentials.
-     * @param type $mResult Is passed by reference.
+     * @param mixed $mResult Is passed by reference.
      */
     public function onAfterSignup($aArgs, &$mResult)
     {
@@ -1187,7 +1208,7 @@ class Module extends \Aurora\System\Module\AbstractModule
             $oUser = \Aurora\System\Api::getUserById((int) $iUserId);
             if ($oUser instanceof User) {
                 $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($oUser->PublicId);
-                $oDomain = $this->getDomainsManager()->getDomainByName($sDomain, 0);
+                $oDomain = $this->oMailDomainsDecorator->getDomainsManager()->getDomainByName($sDomain, 0);
                 if ($oDomain) {
                     $sQuotaBytes = (int) $this->getConfig('UserDefaultQuotaMB', 1) * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER; //Mbytes to bytes
                     $oUser->setExtendedProp($this->GetName() . '::TotalQuotaBytes', $sQuotaBytes);

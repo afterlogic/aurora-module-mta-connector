@@ -15,6 +15,11 @@ namespace Aurora\Modules\MtaConnector\Managers\Main;
 class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
 {
     /**
+     * @var \Aurora\Modules\MtaConnector\Managers\Main\Storages\db\Storage
+     */
+    public $oStorage;
+
+    /**
      * @param \Aurora\System\Module\AbstractModule $oModule
      */
     public function __construct(\Aurora\System\Module\AbstractModule $oModule = null)
