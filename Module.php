@@ -53,6 +53,11 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public $oMailDomainsDecorator = null;
 
+    protected $aRequireModules = array(
+        'Mail',
+        'MailDomains'
+    );
+
     public function init()
     {
         $this->subscribeEvent('Core::CreateUser::after', array($this, 'onAfterCreateUser'));
@@ -96,13 +101,6 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         return parent::Decorator();
     }
-
-    // protected function getDomainsManager()
-    // {
-    //     /** @var \Aurora\Modules\MailDomains\Module $oMailDomainsModule */
-    //     $oMailDomainsModule = \Aurora\System\Api::GetModule('MailDomains');
-    //     return $oMailDomainsModule->getDomainsManager();
-    // }
 
     /***** public functions might be called with web API *****/
     /**
@@ -731,7 +729,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
         $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
-        $oAccount = $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id);
+        $oAccount = $oUser && $this->oMailDecorator && $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id);
         if ($oAccount) {
             $sDomain = preg_match('/.+@(.+)$/', $oAccount->Email, $aMatches) && $aMatches[1] ? $aMatches[1] : '';
             $aAliases = $this->oApiAliasesManager->getAliases($oAccount->Id);
@@ -946,8 +944,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         // $this->oApiMainManager->createTablesFromFile();
 
         if (Server::count() === 0) {
-            $oMailDecorator = \Aurora\Modules\Mail\Module::Decorator();
-            $oMailDecorator->CreateServer(
+            $this->oMailDecorator->CreateServer(
                 'localhost',
                 'localhost',
                 143,
