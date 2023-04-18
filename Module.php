@@ -102,6 +102,15 @@ class Module extends \Aurora\System\Module\AbstractModule
         return parent::Decorator();
     }
 
+    /**
+     *
+     * @return Settings
+     */
+    protected function GetModuleSettings()
+    {
+        return $this->oModuleSettings;
+    }
+
     /***** public functions might be called with web API *****/
     /**
      * @apiDefine MtaConnector MtaConnector Module
