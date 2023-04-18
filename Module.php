@@ -845,7 +845,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
     /**
      * Deletes mailing lists.
-     * @param int $IdList List of mailing list identifiers.
+     * @param array<int> $IdList List of mailing list identifiers.
      * @return boolean
      */
     public function DeleteMailingLists($IdList)
@@ -888,7 +888,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     /**
      * Deletes member from mailing list.
      * @param int $ListId Mailing list identifier.
-     * @param string $Members Emails of members.
+     * @param array<string> $Members Emails of members.
      * @return boolean
      */
     public function DeleteMailingListMembers($ListId, $Members)
