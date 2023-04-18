@@ -738,7 +738,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
         $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
-        $oAccount = $oUser && $this->oMailDecorator && $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id);
+        $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             $sDomain = preg_match('/.+@(.+)$/', $oAccount->Email, $aMatches) && $aMatches[1] ? $aMatches[1] : '';
             $aAliases = $this->oApiAliasesManager->getAliases($oAccount->Id);
