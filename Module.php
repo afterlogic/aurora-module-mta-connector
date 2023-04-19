@@ -15,6 +15,8 @@ use Aurora\Modules\Mail\Models\Server;
  * @license https://afterlogic.com/products/common-licensing Afterlogic Software License
  * @copyright Copyright (c) 2023, Afterlogic Corp.
  *
+ * @property Settings $oModuleSettings
+ *
  * @package Modules
  */
 class Module extends \Aurora\System\Module\AbstractModule
@@ -171,8 +173,8 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
 
         return array(
-            'AllowFetchers' => $this->getConfig('AllowFetchers', false),
-            'UserDefaultQuotaMB' => $this->getConfig('UserDefaultQuotaMB', false)
+            'AllowFetchers' => $this->oModuleSettings->AllowFetchers,
+            'UserDefaultQuotaMB' => $this->oModuleSettings->UserDefaultQuotaMB
         );
     }
 
@@ -263,7 +265,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $oUser = \Aurora\System\Api::getAuthenticatedUser();
         //Only owner or SuperAdmin can get fetchers
         if ($oUser && $oUser instanceof User
-            && $this->getConfig('AllowFetchers', false)
+            && $this->oModuleSettings->AllowFetchers
             && (
                 ($oUser->isNormalOrTenant() && $oUser->Id === $UserId)
                 || $oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin
@@ -357,7 +359,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     ) {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-        if ($this->getConfig('AllowFetchers', false)) {
+        if ($this->oModuleSettings->AllowFetchers) {
             $oFetcher = new \Aurora\Modules\Mail\Models\Fetcher();
             $oFetcher->IdUser = $UserId;
             $oFetcher->IdAccount = $AccountId;
@@ -370,7 +372,7 @@ class Module extends \Aurora\System\Module\AbstractModule
             $oFetcher->LeaveMessagesOnServer = $LeaveMessagesOnServer;
             $oFetcher->Folder = $Folder;
 
-            $oFetcher->CheckInterval = $this->getConfig('FetchersIntervalMinutes', 20);
+            $oFetcher->CheckInterval = $this->oModuleSettings->FetchersIntervalMinutes;
 
             return $this->oApiFetchersManager->createFetcher($oFetcher);
         }
@@ -460,7 +462,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     ) {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-        if ($this->getConfig('AllowFetchers', false)) {
+        if ($this->oModuleSettings->AllowFetchers) {
             $oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
                 $oFetcher->IsEnabled = $IsEnabled;
@@ -562,7 +564,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     ) {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-        if ($this->getConfig('AllowFetchers', false)) {
+        if ($this->oModuleSettings->AllowFetchers) {
             $oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
                 $oFetcher->IsOutgoingEnabled = $IsOutgoingEnabled;
@@ -642,7 +644,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-        if ($this->getConfig('AllowFetchers', false)) {
+        if ($this->oModuleSettings->AllowFetchers) {
             $oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
                 $oFetcher->UseSignature = $UseSignature;
@@ -712,7 +714,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $oUser = \Aurora\System\Api::getAuthenticatedUser();
         //Only owner or SuperAdmin can delete fetcher
         if ($oUser instanceof User &&
-            $this->getConfig('AllowFetchers', false) &&
+            $this->oModuleSettings->AllowFetchers &&
             (
                 $oUser->isNormalOrTenant() &&
                 $oUser->Id === $UserId
@@ -1213,7 +1215,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($oUser->PublicId);
                 $oDomain = $this->oMailDomainsDecorator->getDomainsManager()->getDomainByName($sDomain, 0);
                 if ($oDomain) {
-                    $sQuotaBytes = (int) $this->getConfig('UserDefaultQuotaMB', 1) * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER; //Mbytes to bytes
+                    $sQuotaBytes = (int) $this->oModuleSettings->UserDefaultQuotaMB * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER; //Mbytes to bytes
                     $oUser->setExtendedProp($this->GetName() . '::TotalQuotaBytes', $sQuotaBytes);
                     \Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
 

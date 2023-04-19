@@ -15,7 +15,7 @@ use Aurora\System\SettingsProperty;
  * @property string $FetchersCronMpopScript
  * @property string $FetchersCronMpopDataFolder
  * @property string $FetchersCronDeliveryScript
- * @property int $Fetchers * @property IntervalMinutes
+ * @property int $FetchersIntervalMinutes
  * @property int $UserDefaultQuotaMB
  */
 
