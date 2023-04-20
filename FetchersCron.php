@@ -36,9 +36,9 @@ class CronFetcher
         $oMailModule =  \Aurora\System\Api::GetModule('Mail');
         $this->oApiAccountsManager = $oMailModule->getAccountsManager();
 
-        $this->sFetchersCronMpopDataFolder = $this->oMtaConnectorModule->getConfig('FetchersCronMpopDataFolder', '');
-        $this->sFetchersCronMpopScript = $this->oMtaConnectorModule->getConfig('FetchersCronMpopScript', '');
-        $this->sFetchersCronDeliveryScript = $this->oMtaConnectorModule->getConfig('FetchersCronDeliveryScript', '');
+        $this->sFetchersCronMpopDataFolder = $this->oMtaConnectorModule->oModuleSettings->FetchersCronMpopDataFolder;
+        $this->sFetchersCronMpopScript = $this->oMtaConnectorModule->oModuleSettings->FetchersCronMpopScript;
+        $this->sFetchersCronDeliveryScript = $this->oMtaConnectorModule->oModuleSettings->FetchersCronDeliveryScript;
     }
 
     public static function NewInstance()
@@ -132,7 +132,7 @@ class CronFetcher
         $iTimer = microtime(true);
         $this->log('Start fetcher cron script');
 
-        $bAllowFetchersCrone = $this->oMtaConnectorModule->getConfig('AllowFetchers', false);
+        $bAllowFetchersCrone = $this->oMtaConnectorModule->oModuleSettings->AllowFetchers;
 
         if (!$bAllowFetchersCrone) {
             $this->log('Fetchers are not allowed, exiting...');
