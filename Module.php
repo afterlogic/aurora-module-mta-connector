@@ -50,6 +50,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
 
 		$this->subscribeEvent('Mail::CreateAccount::before', array($this, 'onBeforeCreateAccount'));
+		$this->subscribeEvent('Mail::DeleteAccount::before', array($this, 'onBeforeDeleteAccount'));
 		$this->subscribeEvent('Mail::SaveMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
 		$this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
@@ -994,47 +995,65 @@ class Module extends \Aurora\System\Module\AbstractModule
 			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		}
 
-		$oAccount = \Aurora\Modules\Core\Module::Decorator()->GetAccountUsedToAuthorize($oUser->PublicId);
-		$sUserPublicId = $oAccount ? $oAccount->Email : null;
-		if ($sUserPublicId)
+		//remove from awm_accounts
+		$this->oApiMainManager->deleteAccount($oUser->PublicId);
+
+		//remove mailbox
+		$sScript = '/opt/afterlogic/scripts/webshell-maildirdel.sh';
+		if (file_exists($sScript))
+		{
+			$sEmail = \Aurora\System\Utils::GetAccountNameFromEmail($oUser->PublicId);
+			$sDomain = \MailSo\Base\Utils::GetDomainFromEmail($oUser->PublicId);
+			$sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
+
+			\Aurora\System\Api::Log('deleteMailDir / exec: '.$sCmd, \Aurora\System\Enums\LogLevel::Full);
+			$sReturn = trim(shell_exec($sCmd));
+			if (!empty($sReturn))
+			{
+				\Aurora\System\Api::Log('deleteMailDir / exec result: '.$sReturn, \Aurora\System\Enums\LogLevel::Full);
+			}
+		}
+		else
+		{
+			\Aurora\System\Api::Log('deleteMailDir: '.$sScript.' does not exist', \Aurora\System\Enums\LogLevel::Full);
+		}
+
+		//remove fetchers
+		if ($oUser->EntityId)
+		{
+			$mFetchers = $this->GetFetchers($oUser->EntityId);
+			if ($mFetchers && is_array($mFetchers))
+			{
+				foreach ($mFetchers as $oFetcher)
+				{
+					$this->DeleteFetcher($oUser->EntityId, $oFetcher->EntityId);
+				}
+			}
+		}
+	}
+
+	public function onBeforeDeleteAccount($aArgs, &$mResult)
+	{
+		$oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
+
+		$oAccount = \Aurora\Modules\Mail\Module::Decorator()->GetAccount($aArgs['AccountID']);
+		$oUser = $oAccount ? \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($oAccount->IdUser) : null;
+
+		if ($oAccount instanceof \Aurora\Modules\Mail\Classes\Account
+			&& $oAccount instanceof \Aurora\Modules\Core\Classes\User
+			&& $oAuthenticatedUser->Role === \Aurora\System\Enums\UserRole::TenantAdmin
+			&& $oUser->IdTenant === $oAuthenticatedUser->IdTenant)
+		{
+			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
+		}
+		else
+		{
+			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		}
+
+		if ($oAccount)
 		{
 			$this->oApiAliasesManager->deleteAliases($oAccount->EntityId);
-
-			//remove from awm_accounts
-			$this->oApiMainManager->deleteAccount($sUserPublicId);
-
-			//remove mailbox
-			$sScript = '/opt/afterlogic/scripts/webshell-maildirdel.sh';
-			if (file_exists($sScript))
-			{
-				$sEmail = \Aurora\System\Utils::GetAccountNameFromEmail($sUserPublicId);
-				$sDomain = \MailSo\Base\Utils::GetDomainFromEmail($sUserPublicId);
-				$sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
-
-				\Aurora\System\Api::Log('deleteMailDir / exec: '.$sCmd, \Aurora\System\Enums\LogLevel::Full);
-				$sReturn = trim(shell_exec($sCmd));
-				if (!empty($sReturn))
-				{
-					\Aurora\System\Api::Log('deleteMailDir / exec result: '.$sReturn, \Aurora\System\Enums\LogLevel::Full);
-				}
-			}
-			else
-			{
-				\Aurora\System\Api::Log('deleteMailDir: '.$sScript.' does not exist', \Aurora\System\Enums\LogLevel::Full);
-			}
-
-			//remove fetchers
-			if ($oAccount->IdUser)
-			{
-				$mFetchers = $this->GetFetchers($oAccount->IdUser);
-				if ($mFetchers && is_array($mFetchers))
-				{
-					foreach ($mFetchers as $oFetcher)
-					{
-						$this->DeleteFetcher($oAccount->IdUser, $oFetcher->EntityId);
-					}
-				}
-			}
 		}
 	}
 
