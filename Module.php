@@ -944,11 +944,11 @@ class Module extends \Aurora\System\Module\AbstractModule
         //Only owner or superadmin can get quota
         if ($oUser instanceof User) {
             if ($oUser->isNormalOrTenant() && $oUser->Id === $UserId) {
-                $iResult = $oUser->{self::GetName() . '::TotalQuotaBytes'};
+                $iResult = $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
             } elseif ($oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin) {
                 $oUser = \Aurora\System\Api::getUserById($UserId);
                 if ($oUser instanceof User) {
-                    $iResult = $oUser->{self::GetName() . '::TotalQuotaBytes'};
+                    $iResult = $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
                 }
             }
         }
@@ -984,7 +984,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $oUser = \Aurora\System\Api::getUserById($iUserId);
         \Aurora\Modules\Mail\Module::getInstance()->checkAccess(null, $aData['UserId']);
         if ($aData['Email'] === $oUser->PublicId) {
-            $this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->Id, $oUser->{'MailDomains::DomainId'});
+            $this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->Id, $oUser->getExtendedProp('MailDomains::DomainId'));
         }
     }
 
@@ -1021,7 +1021,10 @@ class Module extends \Aurora\System\Module\AbstractModule
             \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
         }
 
-        $oAccount = \Aurora\Modules\Core\Module::Decorator()->GetAccountUsedToAuthorize($oUser->PublicId);
+        $oAccount = null;
+        if ($oUser) {
+            $oAccount = \Aurora\Modules\Core\Module::Decorator()->GetAccountUsedToAuthorize($oUser->PublicId);
+        }
         $sUserPublicId = $oAccount ? $oAccount->Email : null;
         if ($sUserPublicId) {
             $this->oApiAliasesManager->deleteAliases($oAccount->Id);
@@ -1067,7 +1070,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         foreach ($mResult['Items'] as &$aUser) {
             if (count($aUser) > 0) {
                 $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($aUser['Id']);
-                $aUser['QuotaBytes'] = $oUser instanceof User ? $oUser->{self::GetName() . '::TotalQuotaBytes'} : 0;
+                $aUser['QuotaBytes'] = $oUser instanceof User ? $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes') : 0;
             }
         }
     }
@@ -1082,7 +1085,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                     $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $aArgs['QuotaBytes']);
                     \Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
                     //Update mail quota
-                    $iTotalQuotaBytes =  $oUser->{self::GetName() . '::TotalQuotaBytes'};
+                    $iTotalQuotaBytes =  $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
                     $iFileUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
                     $iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
                     $this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
@@ -1107,7 +1110,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         if (isset($aArgs['UserId']) && isset($mResult['Used'])) {
             $oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
             if ($oUser instanceof User) {
-                $iTotalQuotaBytes =  $oUser->{self::GetName() . '::TotalQuotaBytes'};
+                $iTotalQuotaBytes =  $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
                 $iFileUsageBytes = $mResult['Used'];
                 $iMailQuotaUsageBytes = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
                 $iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
@@ -1130,7 +1133,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $iFilesQuotaUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
                 $iMailQuotaUsageBytes = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
                 $mResult[0] = (int) (($iFilesQuotaUsageBytes + $iMailQuotaUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
-                $mResult[1] = (int) ($oUser->{self::GetName() . '::TotalQuotaBytes'} / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
+                $mResult[1] = (int) ($oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes') / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
 
                 return true;
             }
