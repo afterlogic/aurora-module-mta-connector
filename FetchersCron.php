@@ -7,7 +7,7 @@
 
 namespace Aurora\Modules\MtaConnector;
 
-require_once dirname(__file__)."/../../system/autoload.php";
+require_once \dirname(__file__) . "/../../system/autoload.php";
 \Aurora\System\Api::Init();
 
 /**
