@@ -23,27 +23,27 @@ class Module extends \Aurora\System\Module\AbstractModule
 {
     public const QUOTA_KILO_MULTIPLIER = 1024;
 
-    public $oApiMainManager = null;
+    public $oMainManager = null;
 
     /*
-     * @var $oApiFetchersManager Managers\Fetchers
+     * @var Managers\Fetchers
      */
-    public $oApiFetchersManager = null;
+    public $oFetchersManager = null;
 
     /*
-     * @var $oApiAliasesManager Managers\Aliases
+     * @var Managers\Aliases
      */
-    public $oApiAliasesManager = null;
+    public $oAliasesManager = null;
 
     /*
-     * @var $oApiMailingListsManager Managers\MailingLists
+     * @var Managers\MailingLists
      */
-    public $oApiMailingListsManager = null;
+    public $oMailingListsManager = null;
 
     /*
-     * @var $oApiMtaDomainsManager Managers\Domains
+     * @var Managers\Domains
      */
-    public $oApiMtaDomainsManager = null;
+    public $oDomainsManager = null;
 
     /*
      * @var \Aurora\Modules\Mail\Module
@@ -81,15 +81,15 @@ class Module extends \Aurora\System\Module\AbstractModule
         $this->subscribeEvent('MailSignup::Signup::after', array($this, 'onAfterSignup'), 90);
 
         $this->subscribeEvent('MailDomains::CreateDomain::after', array($this, 'onAfterCreateDomain'));
-        $this->subscribeEvent('MailDomains::DeleteDomains::after', array($this, 'onAfterDeleteDomain'));
+        $this->subscribeEvent('MailDomains::DeleteDomains::before', array($this, 'onBeforeDeleteDomain'));
 
         $this->subscribeEvent('StandardResetPassword::ChangeAccountPassword', array($this, 'onChangeAccountPassword'));
 
-        $this->oApiMainManager = new Managers\Main\Manager($this);
-        $this->oApiFetchersManager = new Managers\Fetchers\Manager($this);
-        $this->oApiAliasesManager = new Managers\Aliases\Manager($this);
-        $this->oApiMailingListsManager = new Managers\MailingLists\Manager($this);
-        $this->oApiMtaDomainsManager = new Managers\Domains\Manager($this);
+        $this->oMainManager = new Managers\Main($this);
+        $this->oFetchersManager = new Managers\Fetchers($this);
+        $this->oAliasesManager = new Managers\Aliases($this);
+        $this->oMailingListsManager = new Managers\MailingLists($this);
+        $this->oDomainsManager = new Managers\Domains($this);
 
         $this->oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
         $this->oMailDomainsDecorator = \Aurora\System\Api::GetModuleDecorator('MailDomains');
@@ -277,7 +277,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 || $oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin
             )
         ) {
-            $mResult = $this->oApiFetchersManager->getFetchers($UserId);
+            $mResult = $this->oFetchersManager->getFetchers($UserId);
         }
 
         return $mResult;
@@ -380,7 +380,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
             $oFetcher->CheckInterval = $this->oModuleSettings->FetchersIntervalMinutes;
 
-            return $this->oApiFetchersManager->createFetcher($oFetcher);
+            return $this->oFetchersManager->createFetcher($oFetcher);
         }
 
         return false;
@@ -469,7 +469,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
         if ($this->oModuleSettings->AllowFetchers) {
-            $oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
+            $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
                 $oFetcher->IsEnabled = $IsEnabled;
                 $oFetcher->IncomingServer = $IncomingServer;
@@ -481,7 +481,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $oFetcher->LeaveMessagesOnServer = $LeaveMessagesOnServer;
                 $oFetcher->Folder = $Folder;
 
-                return $this->oApiFetchersManager->updateFetcher($oFetcher, true);
+                return $this->oFetchersManager->updateFetcher($oFetcher, true);
             }
         }
 
@@ -571,7 +571,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
         if ($this->oModuleSettings->AllowFetchers) {
-            $oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
+            $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
                 $oFetcher->IsOutgoingEnabled = $IsOutgoingEnabled;
                 $oFetcher->Name = $Name;
@@ -581,7 +581,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $oFetcher->OutgoingMailSecurity = $OutgoingUseSsl ? \MailSo\Net\Enumerations\ConnectionSecurityType::SSL : \MailSo\Net\Enumerations\ConnectionSecurityType::NONE;
                 $oFetcher->OutgoingUseAuth = $OutgoingUseAuth;
 
-                return $this->oApiFetchersManager->updateFetcher($oFetcher, false);
+                return $this->oFetchersManager->updateFetcher($oFetcher, false);
             }
         }
 
@@ -651,11 +651,11 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
         if ($this->oModuleSettings->AllowFetchers) {
-            $oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
+            $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
                 $oFetcher->UseSignature = $UseSignature;
                 $oFetcher->Signature = $Signature;
-                return $this->oApiFetchersManager->updateFetcher($oFetcher, false);
+                return $this->oFetchersManager->updateFetcher($oFetcher, false);
             }
         }
 
@@ -727,7 +727,7 @@ class Module extends \Aurora\System\Module\AbstractModule
             ) ||
             $oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin
         ) {
-            $oFetcher = $this->oApiFetchersManager->getFetcher($FetcherId);
+            $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
                 $mResult = $oFetcher->delete();
             }
@@ -749,7 +749,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             $sDomain = preg_match('/.+@(.+)$/', $oAccount->Email, $aMatches) && $aMatches[1] ? $aMatches[1] : '';
-            $aAliases = $this->oApiAliasesManager->getAliases($oAccount->Id);
+            $aAliases = $this->oAliasesManager->getAliases($oAccount->Id);
             return [
                 'Domain' => $sDomain,
                 'Aliases' => $aAliases
@@ -773,7 +773,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
         $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
-            return $this->oApiAliasesManager->addAlias($oAccount->Id, $AliasName, $AliasDomain, $oAccount->Email);
+            return $this->oAliasesManager->addAlias($oAccount->Id, $AliasName, $AliasDomain, $oAccount->Email);
         }
 
         return false;
@@ -797,7 +797,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 preg_match('/(.+)@(.+)$/', $sAlias, $aMatches);
                 $AliasName = isset($aMatches[1]) ? $aMatches[1] : '';
                 $AliasDomain = isset($aMatches[2]) ? $aMatches[2] : '';
-                if ($this->oApiAliasesManager->deleteAlias($oAccount->Id, $AliasName, $AliasDomain)) {
+                if ($this->oAliasesManager->deleteAlias($oAccount->Id, $AliasName, $AliasDomain)) {
                     $mResult = true;
                 }
             }
@@ -816,7 +816,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-        return $this->oApiMailingListsManager->createMailingList($DomainId, $Email);
+        return $this->oMailingListsManager->createMailingList($DomainId, $Email);
     }
 
     /**
@@ -840,10 +840,10 @@ class Module extends \Aurora\System\Module\AbstractModule
                 }
             }
         }
-        $aMailingLists = $this->oApiMailingListsManager->getMailingLists($TenantId, $DomainId, $Search, $Offset, $Limit);
+        $aMailingLists = $this->oMailingListsManager->getMailingLists($TenantId, $DomainId, $Search, $Offset, $Limit);
         if (is_array($aMailingLists)) {
             return [
-                'Count' => $this->oApiMailingListsManager->getMailingListsCount($TenantId, $DomainId, $Search),
+                'Count' => $this->oMailingListsManager->getMailingListsCount($TenantId, $DomainId, $Search),
                 'Items' => $aMailingLists
             ];
         }
@@ -861,7 +861,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
         $mResult = false;
         foreach ($IdList as $iListId) {
-            $mResult = $this->oApiMailingListsManager->deleteMailingList($iListId);
+            $mResult = $this->oMailingListsManager->deleteMailingList($iListId);
         }
         return $mResult;
     }
@@ -875,7 +875,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-        return $this->oApiMailingListsManager->getMailingListMembers($Id);
+        return $this->oMailingListsManager->getMailingListMembers($Id);
     }
 
     /**
@@ -888,9 +888,9 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-        $sListName = $this->oApiMailingListsManager->getMailingListEmail($ListId);
+        $sListName = $this->oMailingListsManager->getMailingListEmail($ListId);
 
-        return $this->oApiMailingListsManager->addMember($ListId, $sListName, $ListTo);
+        return $this->oMailingListsManager->addMember($ListId, $sListName, $ListTo);
     }
 
     /**
@@ -905,22 +905,23 @@ class Module extends \Aurora\System\Module\AbstractModule
 
         $bResult = false;
         foreach ($Members as $sListName) {
-            $bResult = $this->oApiMailingListsManager->deleteMember($ListId, $sListName);
+            $bResult = $this->oMailingListsManager->deleteMember($ListId, $sListName);
         }
         return $bResult;
     }
 
     public function onAfterCreateDomain($aArgs, &$mResult)
     {
-        $this->oApiMtaDomainsManager->createDomain($mResult, $aArgs['TenantId'], \trim($aArgs['DomainName']));
+        $this->oDomainsManager->createDomain($mResult, $aArgs['TenantId'], \trim($aArgs['DomainName']));
     }
 
-    public function onAfterDeleteDomain($aArgs, &$mResult)
+    public function onBeforeDeleteDomain($aArgs, &$mResult)
     {
         $mResult = false;
         foreach ($aArgs['IdList'] as $iDomainId) {
             // remove mailing lists of removed domain
-            $aMailingLists = self::Decorator()->GetMailingLists($aArgs['TenantId'], $iDomainId);
+            $iTenantId = isset($aArgs['TenantId']) ? $aArgs['TenantId'] : 0;
+            $aMailingLists = self::Decorator()->GetMailingLists($iTenantId, $iDomainId);
             $aMailingListIds = [];
             if (isset($aMailingLists['Items']) && is_array($aMailingLists['Items'])) {
                 foreach ($aMailingLists['Items'] as $oMailingList) {
@@ -932,9 +933,8 @@ class Module extends \Aurora\System\Module\AbstractModule
             }
 
             // remove domain
-            $mResult = $this->oApiMtaDomainsManager->deleteDomain($iDomainId);
+            $mResult = $this->oDomainsManager->deleteDomain($iDomainId);
         }
-        return $mResult;
     }
 
     public function GetUserQuota($UserId)
@@ -958,7 +958,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
     public function onAfterCreateTables(&$aData, &$mResult)
     {
-        // $this->oApiMainManager->createTablesFromFile();
+        // $this->oMainManager->createTablesFromFile();
 
         if (Server::count() === 0) {
             $this->oMailDecorator->CreateServer(
@@ -984,7 +984,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $oUser = \Aurora\System\Api::getUserById($iUserId);
         \Aurora\Modules\Mail\Module::getInstance()->checkAccess(null, $aData['UserId']);
         if ($aData['Email'] === $oUser->PublicId) {
-            $this->oApiMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->Id, $oUser->getExtendedProp('MailDomains::DomainId'));
+            $this->oMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->Id, $oUser->getExtendedProp('MailDomains::DomainId'));
         }
     }
 
@@ -995,14 +995,14 @@ class Module extends \Aurora\System\Module\AbstractModule
         if ($oUser instanceof User) {
             $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $sQuotaBytes);
             \Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
-            $this->oApiMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER)); // bytes to Kbytes
+            $this->oMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER)); // bytes to Kbytes
         }
     }
 
     public function onBeforeSendOrSaveMessage(&$aArgs, &$mResult)
     {
         if (isset($aArgs['FetcherID']) && !empty($aArgs['FetcherID'])) {
-            $oFetcher = $this->oApiFetchersManager->getFetcher($aArgs['FetcherID']);
+            $oFetcher = $this->oFetchersManager->getFetcher($aArgs['FetcherID']);
             if ($oFetcher && $oFetcher->IdUser === $aArgs['UserId']) {
                 $aArgs['Fetcher'] = $oFetcher;
             }
@@ -1027,10 +1027,10 @@ class Module extends \Aurora\System\Module\AbstractModule
         }
         $sUserPublicId = $oAccount ? $oAccount->Email : null;
         if ($sUserPublicId) {
-            $this->oApiAliasesManager->deleteAliases($oAccount->Id);
+            $this->oAliasesManager->deleteAliases($oAccount->Id);
 
             //remove from awm_accounts
-            $this->oApiMainManager->deleteAccount($sUserPublicId);
+            $this->oMainManager->deleteAccount($sUserPublicId);
 
             //remove mailbox
             $sScript = '/opt/afterlogic/scripts/webshell-maildirdel.sh';
@@ -1088,7 +1088,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                     $iTotalQuotaBytes =  $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
                     $iFileUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
                     $iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
-                    $this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
+                    $this->oMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
                 }
                 //Update password
                 if (isset($aArgs['Password']) && trim($aArgs['Password']) !== '') {
@@ -1112,9 +1112,9 @@ class Module extends \Aurora\System\Module\AbstractModule
             if ($oUser instanceof User) {
                 $iTotalQuotaBytes =  $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
                 $iFileUsageBytes = $mResult['Used'];
-                $iMailQuotaUsageBytes = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
+                $iMailQuotaUsageBytes = $this->oMainManager->getUserMailQuotaUsage($aArgs['UserId']);
                 $iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
-                $this->oApiMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
+                $this->oMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
                 $mResult['Limit'] = $iTotalQuotaBytes;
                 $mResult['Used'] = $mResult['Used']  + $iMailQuotaUsageBytes;
             }
@@ -1131,7 +1131,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $oUser->PublicId === $oAccount->Email) {
                 $mResult = [];
                 $iFilesQuotaUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
-                $iMailQuotaUsageBytes = $this->oApiMainManager->getUserMailQuotaUsage($aArgs['UserId']);
+                $iMailQuotaUsageBytes = $this->oMainManager->getUserMailQuotaUsage($aArgs['UserId']);
                 $mResult[0] = (int) (($iFilesQuotaUsageBytes + $iMailQuotaUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
                 $mResult[1] = (int) ($oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes') / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
 
@@ -1188,9 +1188,9 @@ class Module extends \Aurora\System\Module\AbstractModule
                 && $this->checkCanChangePassword($oAccount)
                 && ($oAccount->getPassword() === $sCurrentPassword)) {
             if ($bSkipCurrentPasswordCheck) {
-                $bPasswordChanged = $this->oApiMainManager->updateAccountPasswordByEmail($oAccount->Email, $aArguments['NewPassword']);
+                $bPasswordChanged = $this->oMainManager->updateAccountPasswordByEmail($oAccount->Email, $aArguments['NewPassword']);
             } else {
-                $bPasswordChanged = $this->oApiMainManager->updateAccountPassword($oAccount->Email, $sCurrentPassword, $aArguments['NewPassword']);
+                $bPasswordChanged = $this->oMainManager->updateAccountPassword($oAccount->Email, $sCurrentPassword, $aArguments['NewPassword']);
             }
             $bBreakSubscriptions = true; // break if MTA connector tries to change password in this account.
         }
@@ -1233,7 +1233,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                         $oAccount = \Aurora\Modules\Mail\Module::Decorator()->CreateAccount($oUser->Id, $sFriendlyName, $sLogin, $sLogin, $sPassword);
                         \Aurora\System\Api::skipCheckUserRole($bPrevState);
                         if ($oAccount instanceof \Aurora\Modules\Mail\Models\MailAccount) {
-                            $this->oApiMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
+                            $this->oMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
                             $bResult = true;
                             $iTime = $bSignMe ? 0 : time();
                             $sAuthToken = \Aurora\System\Api::UserSession()->Set(

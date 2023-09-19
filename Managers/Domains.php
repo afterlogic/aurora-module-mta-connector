@@ -5,7 +5,10 @@
  * For full statements of the licenses see LICENSE-AFTERLOGIC and LICENSE-AGPL3 files.
  */
 
-namespace Aurora\Modules\MtaConnector\Managers\Domains;
+namespace Aurora\Modules\MtaConnector\Managers;
+
+use Aurora\Modules\MtaConnector\Models\Domain;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
@@ -14,21 +17,8 @@ namespace Aurora\Modules\MtaConnector\Managers\Domains;
  *
  * @property Module $oModule
  */
-class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
+class Domains extends \Aurora\System\Managers\AbstractManager
 {
-    /**
-     * @var \Aurora\Modules\MtaConnector\Managers\Domains\Storages\db\Storage
-     */
-    public $oStorage;
-
-    /**
-     * @param \Aurora\System\Module\AbstractModule $oModule
-     */
-    public function __construct(\Aurora\System\Module\AbstractModule $oModule = null)
-    {
-        parent::__construct($oModule, new \Aurora\Modules\MtaConnector\Managers\Domains\Storages\db\Storage($this));
-    }
-
     /**
      * Creates domain.
      * @param int $iDomainId Domain identifier.
@@ -45,17 +35,11 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
         if ($this->getDomainByName($sDomainName)) {
             throw new \Aurora\Modules\MailDomains\Exceptions\Exception(\Aurora\Modules\MailDomains\Enums\ErrorCodes::DomainExists);
         }
-        return $this->oStorage->createDomain($iDomainId, $iTenantId, $sDomainName);
-    }
-
-    /**
-     * Obtains all domains for specified tenant.
-     * @param int $iTenantId Tenant identifier.
-     * @return array|boolean
-     */
-    public function getDomains($iTenantId)
-    {
-        return $this->oStorage->getDomains($iTenantId);
+        return !!Domain::create([
+            'id_domain' => $iDomainId,
+            'id_tenant' => $iTenantId,
+            'name' => $sDomainName,
+        ]);
     }
 
     /**
@@ -65,7 +49,17 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function getDomain($iDomainId)
     {
-        return $this->oStorage->getDomain($iDomainId);
+        $result = false;
+        $domain = Domain::firstWhere('id_domain', $iDomainId);
+        if ($domain) {
+            $result = [
+                'Id' => $domain->id_domain,
+                'TenantId' => $domain->id_tenant,
+                'Name' => $domain->name
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -75,7 +69,7 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function deleteDomain($iDomainId)
     {
-        return $this->oStorage->deleteDomain($iDomainId);
+        return !!Domain::where('id_domain', $iDomainId)->delete();
     }
 
     /**
@@ -85,7 +79,17 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function getDomainMembers($iDomainId)
     {
-        return $this->oStorage->getDomainMembers($iDomainId);
+        $domains = Domain::where('id_domain', $iDomainId)->get(['id_user', 'email'])->all();
+
+        $result = [];
+        foreach ($domains as $domain) {
+            $result[] = [
+                'UserId' => $domain->id_user,
+                'Email' => $domain->email
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -99,6 +103,15 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
             $sDomainName = \MailSo\Base\Utils::idn()->encode($sDomainName);
         }
 
-        return $this->oStorage->getDomainByName($sDomainName);
+        $domain = Domain::firstWhere('name', $sDomainName);
+        if ($domain) {
+            return [
+                'Id' => $domain->id_domain,
+                'TenantId' => $domain->id_tenant,
+                'Name' => $domain->name
+            ];
+        }
+
+        return false;
     }
 }

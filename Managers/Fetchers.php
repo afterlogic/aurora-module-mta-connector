@@ -5,7 +5,7 @@
  * For full statements of the licenses see LICENSE-AFTERLOGIC and LICENSE-AGPL3 files.
  */
 
-namespace Aurora\Modules\MtaConnector\Managers\Fetchers;
+namespace Aurora\Modules\MtaConnector\Managers;
 
 use Aurora\Modules\Mail\Models\Fetcher;
 
@@ -16,16 +16,8 @@ use Aurora\Modules\Mail\Models\Fetcher;
  *
  * @property Module $oModule
  */
-class Manager extends \Aurora\System\Managers\AbstractManager
+class Fetchers extends \Aurora\System\Managers\AbstractManager
 {
-    /**
-     * @param \Aurora\System\Module\AbstractModule $oModule
-     */
-    public function __construct(\Aurora\System\Module\AbstractModule $oModule = null)
-    {
-        parent::__construct($oModule);
-    }
-
     /**
      * Tries to connect to POP3 server and login with fetcher's credentials.
      * @param \Aurora\Modules\Mail\Models\Fetcher $oFetcher
@@ -108,7 +100,7 @@ class Manager extends \Aurora\System\Managers\AbstractManager
         try {
             $oFetcher = $this->getFetcher($iEntityId);
             if ($oFetcher) {
-                $bResult = $oFetcher->delete();
+                $bResult = !!$oFetcher->delete();
             }
         } catch (\Aurora\System\Exceptions\BaseException $oException) {
             $this->setLastException($oException);

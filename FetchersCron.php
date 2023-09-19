@@ -18,8 +18,8 @@ require_once \dirname(__file__) . "/../../system/autoload.php";
 class CronFetcher
 {
     private $oMtaConnectorModule;
-    private $oApiFetchersManager;
-    private $oApiAccountsManager;
+    private $oFetchersManager;
+    private $oAccountsManager;
 
     private $sFetchersCronMpopDataFolder;
     private $sFetchersCronMpopScript;
@@ -30,11 +30,11 @@ class CronFetcher
         /** @var \Aurora\Modules\MtaConnector\Module $oMtaConnectorModule */
         $oMtaConnectorModule = \Aurora\System\Api::GetModule('MtaConnector');
         $this->oMtaConnectorModule = $oMtaConnectorModule;
-        $this->oApiFetchersManager = $this->oMtaConnectorModule->oApiFetchersManager;
+        $this->oFetchersManager = $this->oMtaConnectorModule->oFetchersManager;
 
         /** @var \Aurora\Modules\Mail\Module $oMailModule */
         $oMailModule =  \Aurora\System\Api::GetModule('Mail');
-        $this->oApiAccountsManager = $oMailModule->getAccountsManager();
+        $this->oAccountsManager = $oMailModule->getAccountsManager();
 
         $this->sFetchersCronMpopDataFolder = $this->oMtaConnectorModule->oModuleSettings->FetchersCronMpopDataFolder;
         $this->sFetchersCronMpopScript = $this->oMtaConnectorModule->oModuleSettings->FetchersCronMpopScript;
@@ -49,7 +49,7 @@ class CronFetcher
     public function ExecuteFetcher($oFetcher)
     {
         $bDoFetch = true;
-        $oAccount = $this->oApiAccountsManager->getAccountById($oFetcher->IdAccount);
+        $oAccount = $this->oAccountsManager->getAccountById($oFetcher->IdAccount);
         if (!isset($oAccount)) {
             $this->log('There is no mail account with identifier ' . $oFetcher->IdAccount);
         } else {
@@ -82,7 +82,7 @@ class CronFetcher
             }
 
             if ($bDoFetch) {
-                $this->oApiFetchersManager->updateFetcher($oFetcher, false);
+                $this->oFetchersManager->updateFetcher($oFetcher, false);
 
                 $sTls = 'off';
                 $sStartTls = 'off';
@@ -122,7 +122,7 @@ class CronFetcher
 
                 $this->log('Unlock mailbox...');
                 $oFetcher->IsLocked = false;
-                $this->oApiFetchersManager->updateFetcher($oFetcher, false);
+                $this->oFetchersManager->updateFetcher($oFetcher, false);
             }
         }
     }
@@ -143,13 +143,13 @@ class CronFetcher
         //			$this->log('Cron data folder (' . $this->sFetchersCronMpopDataFolder . ') does not exist, exiting...');
         //			$bAllowFetchersCrone = false;
         //		}
-//
+        //
         //		if (!file_exists($this->sFetchersCronMpopScript))
         //		{
         //			$this->log('Cron MPOP script (' . $this->sFetchersCronMpopScript . ') does not exist, exiting...');
         //			$bAllowFetchersCrone = false;
         //		}
-//
+        //
         //		if (!file_exists($this->sFetchersCronDeliveryScript))
         //		{
         //			$this->log('Cron delivery script (' . $this->sFetchersCronDeliveryScript . ') does not exist, exiting...');
@@ -157,7 +157,7 @@ class CronFetcher
         //		}
 
         if ($bAllowFetchersCrone) {
-            $aFetchers = $this->oApiFetchersManager->getFetchers();
+            $aFetchers = $this->oFetchersManager->getFetchers();
             foreach ($aFetchers as $oFetcher) {
                 if ($oFetcher->IsEnabled) {
                     $this->ExecuteFetcher($oFetcher);

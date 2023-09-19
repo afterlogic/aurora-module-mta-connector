@@ -5,7 +5,10 @@
  * For full statements of the licenses see LICENSE-AFTERLOGIC and LICENSE-AGPL3 files.
  */
 
-namespace Aurora\Modules\MtaConnector\Managers\MailingLists;
+namespace Aurora\Modules\MtaConnector\Managers;
+
+use Aurora\Modules\MtaConnector\Models\Account;
+use Aurora\Modules\MtaConnector\Models\MailingList;
 
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
@@ -14,21 +17,8 @@ namespace Aurora\Modules\MtaConnector\Managers\MailingLists;
  *
  * @property Module $oModule
  */
-class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
+class MailingLists extends \Aurora\System\Managers\AbstractManager
 {
-    /**
-     * @var \Aurora\Modules\MtaConnector\Managers\MailingLists\Storages\db\Storage
-     */
-    public $oStorage;
-
-    /**
-     * @param \Aurora\System\Module\AbstractModule $oModule
-     */
-    public function __construct(\Aurora\System\Module\AbstractModule $oModule = null)
-    {
-        parent::__construct($oModule, new \Aurora\Modules\MtaConnector\Managers\MailingLists\Storages\db\Storage($this));
-    }
-
     /**
      * Creates mailing list.
      * @param int $iDomainId Domain identifier.
@@ -37,7 +27,11 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function createMailingList($iDomainId, $sEmail)
     {
-        return $this->oStorage->createMailingList($iDomainId, $sEmail);
+        return !!Account::create([
+            'id_domain' => $iDomainId,
+            'email' => $sEmail,
+            'mailing_list' => true
+        ]);
     }
 
     /**
@@ -47,7 +41,12 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function getMailingListEmail($iListId)
     {
-        return $this->oStorage->getMailingListEmail($iListId);
+        $account = Account::firstWhere('id_acct', $iListId);
+        if ($account) {
+            $result = $account->email;
+        }
+
+        return $result;
     }
 
     /**
@@ -57,11 +56,43 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      * @param string $sSearch Search.
      * @param int $iOffset Offset.
      * @param int $iLimit Limit.
-     * @return array|boolean
+     * @param int $bCount Count.
+     * @return array|int|boolean
      */
-    public function getMailingLists($iTenantId = 0, $iDomainId = 0, $sSearch = '', $iOffset = 0, $iLimit = 0)
+    public function getMailingLists($iTenantId = 0, $iDomainId = 0, $sSearch = '', $iOffset = 0, $iLimit = 0, $bCount = false)
     {
-        return $this->oStorage->getMailingLists($iTenantId, $iDomainId, $sSearch, $iOffset, $iLimit);
+        $query = Account::query();
+
+        if ($iDomainId !== 0) {
+            $query = $query->where('id_domain', $iDomainId);
+        }
+        if ($sSearch !== '') {
+            $query = $query->where('email', 'LIKE', '%' . $sSearch . '%');
+        }
+
+        $query = $query->leftJoin('awm_domains', 'awm_domains.id_domain', '=', 'awm_accounts.id_domain')
+            ->where('awm_accounts.mailing_list', true)
+            ->where('awm_domains.id_tenant', $iTenantId);
+
+        if ($iLimit > 0) {
+            $query = $query->offset($iOffset)->limit($iLimit);
+        }
+
+        if ($bCount) {
+            return $query->get()->count();
+        }
+
+        $result = [];
+        $items = $query->get(['id_acct', 'email'])->all();
+        foreach ($items as $item) {
+            $result[] = [
+                'Id' => $item->id_acct,
+                'Name' => $item->email,
+                'Email' => $item->email
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -73,7 +104,7 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function getMailingListsCount($iTenantId = 0, $iDomainId = 0, $sSearch = '')
     {
-        return $this->oStorage->getMailingListsCount($iTenantId, $iDomainId, $sSearch);
+        return $this->getMailingLists($iTenantId, $iDomainId, $sSearch, 0, 0, true);
     }
 
     /**
@@ -83,10 +114,8 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function deleteMailingList($iListId)
     {
-        if ($this->oStorage->deleteMailingListMembers($iListId)) {
-            return $this->oStorage->deleteMailingList($iListId);
-        }
-        return false;
+        MailingList::where('id_acct', $iListId)->delete();
+        return !!Account::where('id_acct', $iListId)->delete();
     }
 
     /**
@@ -96,7 +125,7 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function getMailingListMembers($iListId)
     {
-        return $this->oStorage->getMailingListMembers($iListId);
+        return MailingList::where('id_acct', $iListId)->pluck('list_to')->toArray();
     }
 
     /**
@@ -108,7 +137,11 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function addMember($iListId, $sListName, $sListTo)
     {
-        return $this->oStorage->addMember($iListId, $sListName, $sListTo);
+        return !!MailingList::create([
+            'id_acct' => $iListId,
+            'list_name' => $sListName,
+            'list_to' => $sListTo
+        ]);
     }
 
     /**
@@ -119,16 +152,21 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function deleteMember($iListId, $sListName)
     {
-        return $this->oStorage->deleteMember($iListId, $sListName);
+        return !!MailingList::where('id_acct', $iListId)->where('list_to', $sListName)->delete();
     }
 
     /**
      * Obtains mailing list ID with specified email
      * @param string $sEmail email.
-     * @return string|boolean
+     * @return int|boolean
      */
     public function getMailingListIdByEmail($sEmail)
     {
-        return $this->oStorage->getMailingListIdByEmail($sEmail);
+        $account = Account::firstWhere('email', $sEmail)->where('mailing_list', true);
+        if ($account) {
+            return $account->id_acct;
+        }
+
+        return false;
     }
 }

@@ -5,7 +5,9 @@
  * For full statements of the licenses see LICENSE-AFTERLOGIC and LICENSE-AGPL3 files.
  */
 
-namespace Aurora\Modules\MtaConnector\Managers\Aliases;
+namespace Aurora\Modules\MtaConnector\Managers;
+
+use Aurora\Modules\MtaConnector\Models\Alias;
 
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
@@ -14,21 +16,8 @@ namespace Aurora\Modules\MtaConnector\Managers\Aliases;
  *
  * @property Module $oModule
  */
-class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
+class Aliases extends \Aurora\System\Managers\AbstractManager
 {
-    /**
-     * @var \Aurora\Modules\MtaConnector\Managers\Aliases\Storages\db\Storage
-     */
-    public $oStorage;
-
-    /**
-     * @param \Aurora\System\Module\AbstractModule $oModule
-     */
-    public function __construct(\Aurora\System\Module\AbstractModule $oModule = null)
-    {
-        parent::__construct($oModule, new \Aurora\Modules\MtaConnector\Managers\Aliases\Storages\db\Storage($this));
-    }
-
     /**
      * Obtains all aliases for specified mail account.
      * @param int $iAccountId Account identifier.
@@ -36,7 +25,13 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function getAliases($iAccountId)
     {
-        return $this->oStorage->getAliases($iAccountId);
+        $result = [];
+        $aliases = Alias::where('id_acct', $iAccountId)->get();
+        foreach ($aliases as $alias) {
+            $result[] = $alias->alias_name . '@' . $alias->alias_domain;
+        }
+
+        return $result;
     }
 
     /**
@@ -49,7 +44,12 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function addAlias($iAccountId, $sName, $sDomain, $sToEmail)
     {
-        return $this->oStorage->addAlias($iAccountId, $sName, $sDomain, $sToEmail);
+        return !!Alias::create([
+            'id_acct' => $iAccountId,
+            'alias_name' => $sName,
+            'alias_domain' => $sDomain,
+            'alias_to' => $sToEmail,
+        ]);
     }
 
     /**
@@ -61,7 +61,7 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function deleteAlias($iAccountId, $sName, $sDomain)
     {
-        return $this->oStorage->deleteAlias($iAccountId, $sName, $sDomain);
+        return !!Alias::where('id_acct', $iAccountId)->where('alias_name', $sName)->where('alias_domain', $sDomain)->delete();
     }
 
     /**
@@ -71,6 +71,6 @@ class Manager extends \Aurora\System\Managers\AbstractManagerWithStorage
      */
     public function deleteAliases($iAccountId)
     {
-        return $this->oStorage->deleteAliases($iAccountId);
+        return !!Alias::where('id_acct', $iAccountId)->delete();
     }
 }
