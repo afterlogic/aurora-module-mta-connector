@@ -165,7 +165,7 @@ class CronFetcher
             }
         }
 
-        $this->log('Cron execution time: '.(microtime(true) - $iTimer).' sec.');
+        $this->log('Cron execution time: ' . (microtime(true) - $iTimer) . ' sec.');
     }
 
     private function log($sMessage)

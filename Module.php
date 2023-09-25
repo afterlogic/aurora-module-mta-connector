@@ -1039,7 +1039,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($sUserPublicId);
                 $sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
 
-                \Aurora\System\Api::Log('deleteMailDir / exec: '.$sCmd, \Aurora\System\Enums\LogLevel::Full);
+                \Aurora\System\Api::Log('deleteMailDir / exec: ' . $sCmd, \Aurora\System\Enums\LogLevel::Full);
                 $shell_exec_result = shell_exec($sCmd);
                 if (!empty($shell_exec_result)) {
                     $sReturn = trim(shell_exec($sCmd));
@@ -1047,10 +1047,10 @@ class Module extends \Aurora\System\Module\AbstractModule
                     $sReturn = '';
                 }
                 if (!empty($sReturn)) {
-                    \Aurora\System\Api::Log('deleteMailDir / exec result: '.$sReturn, \Aurora\System\Enums\LogLevel::Full);
+                    \Aurora\System\Api::Log('deleteMailDir / exec result: ' . $sReturn, \Aurora\System\Enums\LogLevel::Full);
                 }
             } else {
-                \Aurora\System\Api::Log('deleteMailDir: '.$sScript.' does not exist', \Aurora\System\Enums\LogLevel::Full);
+                \Aurora\System\Api::Log('deleteMailDir: ' . $sScript . ' does not exist', \Aurora\System\Enums\LogLevel::Full);
             }
 
             //remove fetchers
