@@ -35,6 +35,8 @@ class Account extends Model
 {
     protected $table = 'awm_accounts';
 
+    protected $connection = 'mta';
+
     protected $primaryKey = 'id_acct';
     protected $foreignModel = User::class;
     protected $foreignModelIdColumn = 'id_user'; // Column that refers to an external table

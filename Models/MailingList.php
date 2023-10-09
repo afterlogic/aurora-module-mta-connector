@@ -30,6 +30,8 @@ class MailingList extends Model
 {
     protected $table = 'awm_mailinglists';
 
+    protected $connection = 'mta';
+
     protected $primaryKey = 'id';
     protected $foreignModel = Account::class;
     protected $foreignModelIdColumn = 'id_acct'; // Column that refers to an external table

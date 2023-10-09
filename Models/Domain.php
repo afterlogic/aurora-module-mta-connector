@@ -30,6 +30,8 @@ class Domain extends Model
 {
     protected $table = 'awm_domains';
 
+    protected $connection = 'mta';
+
     protected $primaryKey = 'id_acct';
     protected $foreignModel = Tenant::class;
     protected $foreignModelIdColumn = 'id_tenant'; // Column that refers to an external table
@@ -41,13 +43,4 @@ class Domain extends Model
         'id_tenant',
         'name',
     ];
-
-    // protected $appends = [
-    //     'count'
-    // ];
-
-    // public function getCountAttribute() {
-    //     return Account::where('id_domain', $this->id_domain)
-    //         ->where('mailing_list', false)->count();
-    // }
 }

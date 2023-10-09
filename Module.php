@@ -9,6 +9,8 @@ namespace Aurora\Modules\MtaConnector;
 
 use Aurora\Modules\Core\Models\User;
 use Aurora\Modules\Mail\Models\Server;
+use Illuminate\Database\Capsule\Manager as Capsule;
+use Aurora\System\Api;
 
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
@@ -93,6 +95,21 @@ class Module extends \Aurora\System\Module\AbstractModule
 
         $this->oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
         $this->oMailDomainsDecorator = \Aurora\System\Api::GetModuleDecorator('MailDomains');
+
+        $oSettings = &Api::GetSettings();
+        if ($oSettings) {
+            $dbConfig = Api::GetDbConfig(
+                $oSettings->DBType,
+                $oSettings->DBHost,
+                $oSettings->DBName,
+                '',
+                $oSettings->DBLogin,
+                $oSettings->DBPassword
+            );
+
+            $container = Api::GetContainer();
+            $container['capsule']->addConnection($dbConfig, 'mta');
+        }
     }
 
     /**

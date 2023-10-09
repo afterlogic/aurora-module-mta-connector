@@ -31,6 +31,8 @@ class Alias extends Model
 {
     protected $table = 'awm_mailaliases';
 
+    protected $connection = 'mta';
+
     protected $foreignModel = Account::class;
     protected $foreignModelIdColumn = 'id_acct'; // Column that refers to an external table
 

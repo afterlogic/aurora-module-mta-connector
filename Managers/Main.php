@@ -108,7 +108,7 @@ class Main extends \Aurora\System\Managers\AbstractManager
         if ($UserId) {
             $quota = AccountQuotas::leftJoin('awm_accounts', function ($join) {
                 $join->on('awm_accounts.email', '=', 'awm_account_quotas.name');
-            })->where('id_user', $UserId)->get('mail_quota_usage_bytes');
+            })->where('id_user', $UserId)->get('mail_quota_usage_bytes')->first();
 
             if ($quota) {
                 return $quota->mail_quota_usage_bytes;

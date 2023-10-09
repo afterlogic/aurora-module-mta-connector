@@ -30,6 +30,8 @@ class AccountQuotas extends Model
 {
     protected $table = 'awm_account_quotas';
 
+    protected $connection = 'mta';
+
     public $timestamps = false;
 
     protected $fillable = [
