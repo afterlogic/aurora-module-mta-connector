@@ -26,6 +26,7 @@ class Aliases extends \Aurora\System\Managers\AbstractManager
     public function getAliases($iAccountId)
     {
         $result = [];
+        /** @var \Aurora\Modules\MtaConnector\Models\Alias[] $aliases */
         $aliases = Alias::where('id_acct', $iAccountId)->get();
         foreach ($aliases as $alias) {
             $result[] = $alias->alias_name . '@' . $alias->alias_domain;

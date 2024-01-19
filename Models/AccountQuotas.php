@@ -24,6 +24,7 @@ use Aurora\Modules\Core\Models\Tenant;
  * @method static \Illuminate\Database\Eloquent\Builder|AccountQuotas where(Closure|string|array|\Illuminate\Database\Query\Expression $column, mixed $operator = null, mixed $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Builder|AccountQuotas whereNotNull(string|array $columns, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Builder|AccountQuotas whereIn(string $column, mixed $values, string $boolean = 'and', bool $not = false)
+ * @method static \Illuminate\Database\Eloquent\Builder|AccountQuotas leftJoin(string $table, \Closure|string $first, string|null $operator = null, string|null $second = null)
  * @mixin \Eloquent
  */
 class AccountQuotas extends Model

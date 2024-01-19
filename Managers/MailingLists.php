@@ -56,7 +56,7 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
      * @param string $sSearch Search.
      * @param int $iOffset Offset.
      * @param int $iLimit Limit.
-     * @param int $bCount Count.
+     * @param bool $bCount Count.
      * @return array|int|boolean
      */
     public function getMailingLists($iTenantId = 0, $iDomainId = 0, $sSearch = '', $iOffset = 0, $iLimit = 0, $bCount = false)

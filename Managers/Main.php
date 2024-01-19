@@ -88,6 +88,7 @@ class Main extends \Aurora\System\Managers\AbstractManager
      */
     public function getUserMailQuota($UserId)
     {
+        /** @var \Aurora\Modules\MtaConnector\Models\Account $account */
         $account = Account::where('id_user', (int) $UserId)->get('mail_quota_kb');
 
         if ($account) {
