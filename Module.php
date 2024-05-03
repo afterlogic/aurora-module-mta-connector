@@ -96,6 +96,11 @@ class Module extends \Aurora\System\Module\AbstractModule
         $this->oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
         $this->oMailDomainsDecorator = \Aurora\System\Api::GetModuleDecorator('MailDomains');
 
+        $this->addDbConnection();
+    }
+
+    public function addDbConnection()
+    {
         $oSettings = &Api::GetSettings();
         if ($oSettings) {
             $dbConfig = Api::GetDbConfig(

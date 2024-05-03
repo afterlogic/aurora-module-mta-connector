@@ -33,6 +33,10 @@ class AccountQuotas extends Model
 
     protected $connection = 'mta';
 
+    protected $primaryKey = 'id';
+    protected $foreignModel = Account::class;
+    protected $foreignModelIdColumn = 'name'; // Column that refers to an external table
+
     public $timestamps = false;
 
     protected $fillable = [

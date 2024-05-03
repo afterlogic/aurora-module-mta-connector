@@ -32,7 +32,7 @@ class Domain extends Model
 
     protected $connection = 'mta';
 
-    protected $primaryKey = 'id_acct';
+    protected $primaryKey = 'id_domain';
     protected $foreignModel = Tenant::class;
     protected $foreignModelIdColumn = 'id_tenant'; // Column that refers to an external table
 
