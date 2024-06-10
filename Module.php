@@ -1208,11 +1208,9 @@ class Module extends \Aurora\System\Module\AbstractModule
         $sCurrentPassword = $bSkipCurrentPasswordCheck ? $oAccount->getPassword() : $aArguments['CurrentPassword'];
         if ($oAccount instanceof \Aurora\Modules\Mail\Models\MailAccount
                 && $this->checkCanChangePassword($oAccount)
-                && ($oAccount->getPassword() === $sCurrentPassword)) {
+                && ($oAccount->getPassword() === $sCurrentPassword || $bSkipCurrentPasswordCheck)) {
             if ($bSkipCurrentPasswordCheck) {
                 $bPasswordChanged = $this->oMainManager->updateAccountPasswordByEmail($oAccount->Email, $aArguments['NewPassword']);
-            } else {
-                $bPasswordChanged = $this->oMainManager->updateAccountPassword($oAccount->Email, $sCurrentPassword, $aArguments['NewPassword']);
             }
             $bBreakSubscriptions = true; // break if MTA connector tries to change password in this account.
         }
