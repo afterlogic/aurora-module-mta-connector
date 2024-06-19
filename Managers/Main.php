@@ -47,9 +47,11 @@ class Main extends \Aurora\System\Managers\AbstractManager
                     'password' => $sNewPassword
                 ]);
         }
+
+        return false;
     }
 
-    public function updateAccountPasswordByEmail($sEmail, $sNewPassword)
+    public function updateAccountPasswordWithoutCheck($sEmail, $sNewPassword)
     {
         if (!empty($sEmail) && !empty($sNewPassword)) {
             $sEmail = \MailSo\Base\Utils::idn()->encode($sEmail);

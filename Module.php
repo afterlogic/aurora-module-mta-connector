@@ -9,7 +9,10 @@ namespace Aurora\Modules\MtaConnector;
 
 use Aurora\Modules\Core\Models\User;
 use Aurora\Modules\Mail\Models\Server;
-use Illuminate\Database\Capsule\Manager as Capsule;
+use Aurora\Modules\Mail\Models\MailAccount;
+use Aurora\Modules\Core\Module as CoreModule;
+use Aurora\Modules\Mail\Module as MailModule;
+use Aurora\System\Enums\UserRole;
 use Aurora\System\Api;
 
 /**
@@ -93,8 +96,8 @@ class Module extends \Aurora\System\Module\AbstractModule
         $this->oMailingListsManager = new Managers\MailingLists($this);
         $this->oDomainsManager = new Managers\Domains($this);
 
-        $this->oMailDecorator = \Aurora\System\Api::GetModuleDecorator('Mail');
-        $this->oMailDomainsDecorator = \Aurora\System\Api::GetModuleDecorator('MailDomains');
+        $this->oMailDecorator = Api::GetModuleDecorator('Mail');
+        $this->oMailDomainsDecorator = Api::GetModuleDecorator('MailDomains');
 
         $this->addDbConnection();
     }
@@ -198,7 +201,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function GetSettings()
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
+        Api::checkUserRoleIsAtLeast(UserRole::Anonymous);
 
         return array(
             'AllowFetchers' => $this->oModuleSettings->AllowFetchers,
@@ -290,13 +293,13 @@ class Module extends \Aurora\System\Module\AbstractModule
     public function GetFetchers($UserId)
     {
         $mResult = false;
-        $oUser = \Aurora\System\Api::getAuthenticatedUser();
+        $oUser = Api::getAuthenticatedUser();
         //Only owner or SuperAdmin can get fetchers
         if ($oUser && $oUser instanceof User
             && $this->oModuleSettings->AllowFetchers
             && (
                 ($oUser->isNormalOrTenant() && $oUser->Id === $UserId)
-                || $oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin
+                || $oUser->Role === UserRole::SuperAdmin
             )
         ) {
             $mResult = $this->oFetchersManager->getFetchers($UserId);
@@ -385,7 +388,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $IncomingUseSsl,
         $LeaveMessagesOnServer
     ) {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+        Api::checkUserRoleIsAtLeast(UserRole::NormalUser);
 
         if ($this->oModuleSettings->AllowFetchers) {
             $oFetcher = new \Aurora\Modules\Mail\Models\Fetcher();
@@ -488,7 +491,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $LeaveMessagesOnServer,
         $IncomingPassword = null
     ) {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+        Api::checkUserRoleIsAtLeast(UserRole::NormalUser);
 
         if ($this->oModuleSettings->AllowFetchers) {
             $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
@@ -590,7 +593,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $OutgoingUseSsl,
         $OutgoingUseAuth
     ) {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+        Api::checkUserRoleIsAtLeast(UserRole::NormalUser);
 
         if ($this->oModuleSettings->AllowFetchers) {
             $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
@@ -670,7 +673,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function UpdateSignature($UserId, $FetcherId = null, $UseSignature = null, $Signature = null)
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+        Api::checkUserRoleIsAtLeast(UserRole::NormalUser);
 
         if ($this->oModuleSettings->AllowFetchers) {
             $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
@@ -739,7 +742,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     public function DeleteFetcher($UserId, $FetcherId)
     {
         $mResult = false;
-        $oUser = \Aurora\System\Api::getAuthenticatedUser();
+        $oUser = Api::getAuthenticatedUser();
         //Only owner or SuperAdmin can delete fetcher
         if ($oUser instanceof User &&
             $this->oModuleSettings->AllowFetchers &&
@@ -747,7 +750,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $oUser->isNormalOrTenant() &&
                 $oUser->Id === $UserId
             ) ||
-            $oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin
+            $oUser->Role === UserRole::SuperAdmin
         ) {
             $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
@@ -765,9 +768,9 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function GetAliases($UserId)
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
+        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($UserId);
         $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             $sDomain = preg_match('/.+@(.+)$/', $oAccount->Email, $aMatches) && $aMatches[1] ? $aMatches[1] : '';
@@ -790,9 +793,9 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function AddNewAlias($UserId, $AliasName, $AliasDomain)
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
+        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($UserId);
         $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             return $this->oAliasesManager->addAlias($oAccount->Id, $AliasName, $AliasDomain, $oAccount->Email);
@@ -809,10 +812,10 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function DeleteAlias($UserId, $Aliases)
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
         $mResult = false;
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($UserId);
+        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($UserId);
         $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             foreach ($Aliases as $sAlias) {
@@ -836,7 +839,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function CreateMailingList($DomainId = 0, $Email = '')
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
         return $this->oMailingListsManager->createMailingList($DomainId, $Email);
     }
@@ -852,7 +855,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function GetMailingLists($TenantId = 0, $DomainId = 0, $Search = '', $Offset = 0, $Limit = 0)
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
         if ($TenantId === 0) {
             if ($DomainId !== 0) {
@@ -880,7 +883,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function DeleteMailingLists($IdList)
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
         $mResult = false;
         foreach ($IdList as $iListId) {
             $mResult = $this->oMailingListsManager->deleteMailingList($iListId);
@@ -895,7 +898,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function GetMailingListMembers($Id)
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
         return $this->oMailingListsManager->getMailingListMembers($Id);
     }
@@ -908,7 +911,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function AddMailingListMember($ListId, $ListTo)
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
         $sListName = $this->oMailingListsManager->getMailingListEmail($ListId);
 
@@ -923,7 +926,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     public function DeleteMailingListMembers($ListId, $Members)
     {
-        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
         $bResult = false;
         foreach ($Members as $sListName) {
@@ -962,13 +965,13 @@ class Module extends \Aurora\System\Module\AbstractModule
     public function GetUserQuota($UserId)
     {
         $iResult = 0;
-        $oUser = \Aurora\System\Api::getAuthenticatedUser();
+        $oUser = Api::getAuthenticatedUser();
         //Only owner or superadmin can get quota
         if ($oUser instanceof User) {
             if ($oUser->isNormalOrTenant() && $oUser->Id === $UserId) {
                 $iResult = $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
-            } elseif ($oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin) {
-                $oUser = \Aurora\System\Api::getUserById($UserId);
+            } elseif ($oUser->Role === UserRole::SuperAdmin) {
+                $oUser = Api::getUserById($UserId);
                 if ($oUser instanceof User) {
                     $iResult = $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
                 }
@@ -1003,8 +1006,8 @@ class Module extends \Aurora\System\Module\AbstractModule
     public function onBeforeCreateAccount(&$aData, &$mResult)
     {
         $iUserId = $aData['UserId'];
-        $oUser = \Aurora\System\Api::getUserById($iUserId);
-        \Aurora\Modules\Mail\Module::getInstance()->checkAccess(null, $aData['UserId']);
+        $oUser = Api::getUserById($iUserId);
+        MailModule::getInstance()->checkAccess(null, $aData['UserId']);
         if ($aData['Email'] === $oUser->PublicId) {
             $this->oMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->Id, $oUser->getExtendedProp('MailDomains::DomainId'));
         }
@@ -1013,10 +1016,10 @@ class Module extends \Aurora\System\Module\AbstractModule
     public function onAfterCreateUser(&$aData, &$mResult)
     {
         $sQuotaBytes = isset($aData['QuotaBytes']) ? $aData['QuotaBytes'] : null;
-        $oUser = \Aurora\System\Api::getUserById($mResult);
+        $oUser = Api::getUserById($mResult);
         if ($oUser instanceof User) {
             $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $sQuotaBytes);
-            \Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
+            CoreModule::Decorator()->UpdateUserObject($oUser);
             $this->oMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER)); // bytes to Kbytes
         }
     }
@@ -1033,19 +1036,19 @@ class Module extends \Aurora\System\Module\AbstractModule
 
     public function onBeforeDeleteUser($aArgs, &$mResult)
     {
-        $oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
+        $oAuthenticatedUser = Api::getAuthenticatedUser();
 
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($aArgs['UserId']);
+        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($aArgs['UserId']);
 
-        if ($oUser instanceof User && $oAuthenticatedUser->Role === \Aurora\System\Enums\UserRole::TenantAdmin && $oUser->IdTenant === $oAuthenticatedUser->IdTenant) {
-            \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
+        if ($oUser instanceof User && $oAuthenticatedUser->Role === UserRole::TenantAdmin && $oUser->IdTenant === $oAuthenticatedUser->IdTenant) {
+            Api::checkUserRoleIsAtLeast(UserRole::TenantAdmin);
         } else {
-            \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+            Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
         }
 
         $oAccount = null;
         if ($oUser) {
-            $oAccount = \Aurora\Modules\Core\Module::Decorator()->GetAccountUsedToAuthorize($oUser->PublicId);
+            $oAccount = CoreModule::Decorator()->GetAccountUsedToAuthorize($oUser->PublicId);
         }
         $sUserPublicId = $oAccount ? $oAccount->Email : null;
         if ($sUserPublicId) {
@@ -1061,7 +1064,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($sUserPublicId);
                 $sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
 
-                \Aurora\System\Api::Log('deleteMailDir / exec: ' . $sCmd, \Aurora\System\Enums\LogLevel::Full);
+                Api::Log('deleteMailDir / exec: ' . $sCmd, \Aurora\System\Enums\LogLevel::Full);
                 $shell_exec_result = shell_exec($sCmd);
                 if (!empty($shell_exec_result)) {
                     $sReturn = trim(shell_exec($sCmd));
@@ -1069,10 +1072,10 @@ class Module extends \Aurora\System\Module\AbstractModule
                     $sReturn = '';
                 }
                 if (!empty($sReturn)) {
-                    \Aurora\System\Api::Log('deleteMailDir / exec result: ' . $sReturn, \Aurora\System\Enums\LogLevel::Full);
+                    Api::Log('deleteMailDir / exec result: ' . $sReturn, \Aurora\System\Enums\LogLevel::Full);
                 }
             } else {
-                \Aurora\System\Api::Log('deleteMailDir: ' . $sScript . ' does not exist', \Aurora\System\Enums\LogLevel::Full);
+                Api::Log('deleteMailDir: ' . $sScript . ' does not exist', \Aurora\System\Enums\LogLevel::Full);
             }
 
             //remove fetchers
@@ -1091,7 +1094,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         foreach ($mResult['Items'] as &$aUser) {
             if (count($aUser) > 0) {
-                $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($aUser['Id']);
+                $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($aUser['Id']);
                 $aUser['QuotaBytes'] = $oUser instanceof User ? $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes') : 0;
             }
         }
@@ -1099,13 +1102,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 
     public function onAfterUpdateUser($aArgs, &$mResult, &$mSubscriptionResult)
     {
-        if (isset($aArgs['UserId'])) {
-            $oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
+        if ($mResult && isset($aArgs['UserId'])) {
+            $oUser = Api::getUserById($aArgs['UserId']);
             if ($oUser instanceof User) {
                 //Update quota
                 if (isset($aArgs['QuotaBytes'])) {
                     $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $aArgs['QuotaBytes']);
-                    \Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
+                    CoreModule::Decorator()->UpdateUserObject($oUser);
                     //Update mail quota
                     $iTotalQuotaBytes =  $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
                     $iFileUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
@@ -1114,9 +1117,9 @@ class Module extends \Aurora\System\Module\AbstractModule
                 }
                 //Update password
                 if (isset($aArgs['Password']) && trim($aArgs['Password']) !== '') {
-                    $oAccount = \Aurora\Modules\Mail\Module::Decorator()->GetAccountByEmail($oUser->PublicId, $oUser->Id);
-                    if ($oAccount instanceof \Aurora\Modules\Mail\Models\MailAccount) {
-                        $mSubscriptionResult['IsPasswordChanged'] = (bool) \Aurora\Modules\Mail\Module::Decorator()->ChangePassword($oAccount->Id, $oAccount->getPassword(), \trim($aArgs['Password']));
+                    $oAccount = MailModule::Decorator()->GetAccountByEmail($oUser->PublicId, $oUser->Id);
+                    if ($oAccount instanceof MailAccount) {
+                        $mSubscriptionResult['IsPasswordChanged'] = (bool) MailModule::Decorator()->ChangePassword($oAccount->Id, $oAccount->getPassword(), \trim($aArgs['Password']));
                     }
                 } elseif (isset($aArgs['Password']) && trim($aArgs['Password']) === '') {
                     $mSubscriptionResult['IsPasswordChanged'] = false;
@@ -1130,7 +1133,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         //We get the used space of the file quota, take its value from the total quota and write result in the mail quota
         if (isset($aArgs['UserId']) && isset($mResult['Used'])) {
-            $oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
+            $oUser = Api::getUserById($aArgs['UserId']);
             if ($oUser instanceof User) {
                 $iTotalQuotaBytes =  $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
                 $iFileUsageBytes = $mResult['Used'];
@@ -1146,10 +1149,10 @@ class Module extends \Aurora\System\Module\AbstractModule
     public function onBeforeGetQuotaMail($aArgs, &$mResult)
     {
         if (isset($aArgs['UserId']) && isset($aArgs['AccountID'])) {
-            $oUser = \Aurora\System\Api::getUserById($aArgs['UserId']);
-            $oAccount = \Aurora\Modules\Mail\Module::Decorator()->GetAccount($aArgs['AccountID']);
+            $oUser = Api::getUserById($aArgs['UserId']);
+            $oAccount = MailModule::Decorator()->GetAccount($aArgs['AccountID']);
             if ($oUser instanceof User &&
-                $oAccount instanceof \Aurora\Modules\Mail\Models\MailAccount &&
+                $oAccount instanceof MailAccount &&
                 $oUser->PublicId === $oAccount->Email) {
                 $mResult = [];
                 $iFilesQuotaUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
@@ -1167,9 +1170,9 @@ class Module extends \Aurora\System\Module\AbstractModule
      * @param \Aurora\Modules\Mail\Models\MailAccount $oAccount
      * @return bool
      */
-    protected function checkCanChangePassword($oAccount)
+    protected function isDefaultAccount($oAccount)
     {
-        $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($oAccount->IdUser);
+        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($oAccount->IdUser);
         if ($oUser instanceof User && $oUser->PublicId === $oAccount->Email) {
             return true;
         }
@@ -1185,7 +1188,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         $oAccount = $aArguments['Account'];
 
-        if ($oAccount && $this->checkCanChangePassword($oAccount)) {
+        if ($oAccount && $this->isDefaultAccount($oAccount)) {
             if (!isset($mResult['Extend']) || !is_array($mResult['Extend'])) {
                 $mResult['Extend'] = [];
             }
@@ -1204,13 +1207,17 @@ class Module extends \Aurora\System\Module\AbstractModule
         $bBreakSubscriptions = false;
 
         $oAccount = $aArguments['Account'];
-        $bSkipCurrentPasswordCheck = isset($aArguments['SkipCurrentPasswordCheck']) && $aArguments['SkipCurrentPasswordCheck'];
-        $sCurrentPassword = $bSkipCurrentPasswordCheck ? $oAccount->getPassword() : $aArguments['CurrentPassword'];
-        if ($oAccount instanceof \Aurora\Modules\Mail\Models\MailAccount
-                && $this->checkCanChangePassword($oAccount)
-                && ($oAccount->getPassword() === $sCurrentPassword || $bSkipCurrentPasswordCheck)) {
-            if ($bSkipCurrentPasswordCheck) {
-                $bPasswordChanged = $this->oMainManager->updateAccountPasswordByEmail($oAccount->Email, $aArguments['NewPassword']);
+        if ($oAccount instanceof MailAccount && $this->isDefaultAccount($oAccount)) {
+            $bSkipCurrentPasswordCheck = isset($aArguments['SkipCurrentPasswordCheck']) && $aArguments['SkipCurrentPasswordCheck'];
+            $oUser = Api::getUserById($oAccount->IdUser);
+            $oAuthenticatedUser = Api::getAuthenticatedUser();
+            if ($bSkipCurrentPasswordCheck || // the user resets the password
+                $oAuthenticatedUser &&
+                ($oAuthenticatedUser->Role === UserRole::SuperAdmin || // admin updates the user password
+                ($oUser && $oUser->IdTenant === $oAuthenticatedUser->IdTenant && $oAuthenticatedUser->Role === UserRole::TenantAdmin))) { // tenant admin updates the user password
+                $bPasswordChanged = $this->oMainManager->updateAccountPasswordWithoutCheck($oAccount->Email, $aArguments['NewPassword']);
+            } elseif ($oAccount->getPassword() === $aArguments['CurrentPassword']) { // if the user updates the password
+                $bPasswordChanged = $this->oMainManager->updateAccountPassword($oAccount->Email, $aArguments['CurrentPassword'], $aArguments['NewPassword']);
             }
             $bBreakSubscriptions = true; // break if MTA connector tries to change password in this account.
         }
@@ -1237,26 +1244,26 @@ class Module extends \Aurora\System\Module\AbstractModule
             $sPassword = trim($aArgs['Password']);
             $sFriendlyName = isset($aArgs['Name']) ? trim($aArgs['Name']) : '';
             $bSignMe = isset($aArgs['SignMe']) ? (bool) $aArgs['SignMe'] : false;
-            $bPrevState = \Aurora\System\Api::skipCheckUserRole(true);
-            $iUserId = \Aurora\Modules\Core\Module::Decorator()->CreateUser(0, $sLogin);
-            $oUser = \Aurora\System\Api::getUserById((int) $iUserId);
+            $bPrevState = Api::skipCheckUserRole(true);
+            $iUserId = CoreModule::Decorator()->CreateUser(0, $sLogin);
+            $oUser = Api::getUserById((int) $iUserId);
             if ($oUser instanceof User) {
                 $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($oUser->PublicId);
                 $oDomain = $this->oMailDomainsDecorator->getDomainsManager()->getDomainByName($sDomain, 0);
                 if ($oDomain) {
                     $sQuotaBytes = (int) $this->oModuleSettings->UserDefaultQuotaMB * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER; //Mbytes to bytes
                     $oUser->setExtendedProp($this->GetName() . '::TotalQuotaBytes', $sQuotaBytes);
-                    \Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
+                    CoreModule::Decorator()->UpdateUserObject($oUser);
 
                     try {
-                        $bPrevState = \Aurora\System\Api::skipCheckUserRole(true);
-                        $oAccount = \Aurora\Modules\Mail\Module::Decorator()->CreateAccount($oUser->Id, $sFriendlyName, $sLogin, $sLogin, $sPassword);
-                        \Aurora\System\Api::skipCheckUserRole($bPrevState);
-                        if ($oAccount instanceof \Aurora\Modules\Mail\Models\MailAccount) {
+                        $bPrevState = Api::skipCheckUserRole(true);
+                        $oAccount = MailModule::Decorator()->CreateAccount($oUser->Id, $sFriendlyName, $sLogin, $sLogin, $sPassword);
+                        Api::skipCheckUserRole($bPrevState);
+                        if ($oAccount instanceof MailAccount) {
                             $this->oMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
                             $bResult = true;
                             $iTime = $bSignMe ? 0 : time();
-                            $sAuthToken = \Aurora\System\Api::UserSession()->Set(
+                            $sAuthToken = Api::UserSession()->Set(
                                 \Aurora\System\UserSession::getTokenData($oAccount, $bSignMe),
                                 $iTime
                             );
@@ -1265,16 +1272,16 @@ class Module extends \Aurora\System\Module\AbstractModule
                     } catch (\Exception $oException) {
                         if ($oException instanceof \Aurora\Modules\Mail\Exceptions\Exception &&
                             $oException->getCode() === \Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect) {
-                            \Aurora\Modules\Core\Module::Decorator()->DeleteUser($oUser->Id);
+                            CoreModule::Decorator()->DeleteUser($oUser->Id);
                         }
                         throw $oException;
                     }
                 }
             }
             if (!$bResult) {//If Account wasn't created - delete user
-                \Aurora\Modules\Core\Module::Decorator()->DeleteUser($oUser->Id);
+                CoreModule::Decorator()->DeleteUser($oUser->Id);
             }
-            \Aurora\System\Api::skipCheckUserRole($bPrevState);
+            Api::skipCheckUserRole($bPrevState);
         }
 
         return true; // break subscriptions to prevent account creation in other modules
