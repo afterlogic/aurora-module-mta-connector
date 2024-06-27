@@ -8,9 +8,9 @@ use Aurora\System\Classes\Model;
  * Aurora\Modules\MtaConnector\Models\MailingList
  *
  * @property integer $id
- * @property integer $id_acct
- * @property string $list_name
- * @property string $list_name
+ * @property integer $id_domain
+ * @property string $name
+
  *
  * @method static int count(string $columns = '*')
  * @method static \Illuminate\Database\Eloquent\Builder|MailingList find(int|string $id, array|string $columns = ['*'])
@@ -33,15 +33,14 @@ class MailingList extends Model
     protected $connection = 'mta';
 
     protected $primaryKey = 'id';
-    protected $foreignModel = Account::class;
-    protected $foreignModelIdColumn = 'id_acct'; // Column that refers to an external table
+    protected $foreignModel = Domain::class;
+    protected $foreignModelIdColumn = 'id_domain'; // Column that refers to an external table
 
     public $timestamps = false;
 
     protected $fillable = [
         'id',
-        'id_acct',
-        'list_name',
-        'list_to'
+        'id_domain',
+        'name',
     ];
 }
