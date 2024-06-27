@@ -934,6 +934,18 @@ class Module extends \Aurora\System\Module\AbstractModule
         return $bResult;
     }
 
+
+    /**
+     * Deletes domain.
+     * @param int $DomainId domain identifier.
+     * @return boolean
+     */
+    public function DeleteDomain($DomainId)
+    {
+        Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
+        return $this->oDomainsManager->deleteDomain($DomainId);
+    }
+
     public function onAfterCreateDomain($aArgs, &$mResult)
     {
         $this->oDomainsManager->createDomain($mResult, $aArgs['TenantId'], \trim($aArgs['DomainName']));
@@ -957,7 +969,7 @@ class Module extends \Aurora\System\Module\AbstractModule
             }
 
             // remove domain
-            $mResult = $this->oDomainsManager->deleteDomain($iDomainId);
+            $mResult = self::Decorator()->DeleteDomain($iDomainId);
         }
     }
 
@@ -1033,10 +1045,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 
     public function onBeforeDeleteUser($aArgs, &$mResult)
     {
-        $oAuthenticatedUser = Api::getAuthenticatedUser();
-
         $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($aArgs['UserId']);
 
+        $oAuthenticatedUser = Api::getAuthenticatedUser();
         if ($oUser instanceof User && $oAuthenticatedUser->Role === UserRole::TenantAdmin && $oUser->IdTenant === $oAuthenticatedUser->IdTenant) {
             Api::checkUserRoleIsAtLeast(UserRole::TenantAdmin);
         } else {
