@@ -14,6 +14,7 @@ use Aurora\Modules\Core\Module as CoreModule;
 use Aurora\Modules\Mail\Module as MailModule;
 use Aurora\System\Enums\UserRole;
 use Aurora\System\Api;
+use MailSo\Base\HtmlUtils;
 
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
@@ -678,8 +679,10 @@ class Module extends \Aurora\System\Module\AbstractModule
         if ($this->oModuleSettings->AllowFetchers) {
             $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
+                if ($Signature !== null) {
+                    $oFetcher->Signature = HtmlUtils::ClearHtml($Signature);
+                }
                 $oFetcher->UseSignature = $UseSignature;
-                $oFetcher->Signature = $Signature;
                 return $this->oFetchersManager->updateFetcher($oFetcher, false);
             }
         }
