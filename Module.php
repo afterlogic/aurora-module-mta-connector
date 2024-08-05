@@ -1022,7 +1022,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         $iUserId = $aData['UserId'];
         $oUser = Api::getUserById($iUserId);
-        MailModule::getInstance()->checkAccess(null, $aData['UserId']);
+        Api::CheckAccess($aData['UserId']);
         if ($aData['Email'] === $oUser->PublicId) {
             $this->oMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->Id, $oUser->getExtendedProp('MailDomains::DomainId'));
         }
