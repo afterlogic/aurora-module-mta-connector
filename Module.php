@@ -80,7 +80,6 @@ class Module extends \Aurora\System\Module\AbstractModule
         $this->subscribeEvent('Mail::SendMessage::before', array($this, 'onBeforeSendOrSaveMessage'));
         $this->subscribeEvent('Mail::GetQuota::before', array($this, 'onBeforeGetQuotaMail'), 110);
         $this->subscribeEvent('Mail::Account::ToResponseArray', array($this, 'onMailAccountToResponseArray'));
-        $this->subscribeEvent('Mail::ChangeAccountPassword', array($this, 'onChangeAccountPassword'));
 
         $this->subscribeEvent('Files::GetQuota::after', array($this, 'onAfterGetQuotaFiles'), 110);
 
@@ -89,7 +88,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $this->subscribeEvent('MailDomains::CreateDomain::after', array($this, 'onAfterCreateDomain'));
         $this->subscribeEvent('MailDomains::DeleteDomains::before', array($this, 'onBeforeDeleteDomain'));
 
-        $this->subscribeEvent('StandardResetPassword::ChangeAccountPassword', array($this, 'onChangeAccountPassword'));
+        $this->subscribeEvent('ChangeAccountPassword', array($this, 'onChangeAccountPassword'));
 
         $this->oMainManager = new Managers\Main($this);
         $this->oFetchersManager = new Managers\Fetchers($this);
@@ -1118,7 +1117,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         if ($mResult && isset($aArgs['UserId'])) {
             $oUser = Api::getUserById($aArgs['UserId']);
-            if ($oUser instanceof User) {
+            if ($oUser instanceof User && in_array($oUser->Role, [UserRole::SuperAdmin, $oUser->Role === UserRole::TenantAdmin])) {
                 //Update quota
                 if (isset($aArgs['QuotaBytes'])) {
                     $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $aArgs['QuotaBytes']);
@@ -1130,13 +1129,16 @@ class Module extends \Aurora\System\Module\AbstractModule
                     $this->oMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
                 }
                 //Update password
-                if (isset($aArgs['Password']) && trim($aArgs['Password']) !== '') {
-                    $oAccount = MailModule::Decorator()->GetAccountByEmail($oUser->PublicId, $oUser->Id);
-                    if ($oAccount instanceof MailAccount) {
-                        $mSubscriptionResult['IsPasswordChanged'] = (bool) MailModule::Decorator()->ChangePassword($oAccount->Id, $oAccount->getPassword(), \trim($aArgs['Password']));
+                if (isset($aArgs['Password'])) {
+                    $password = trim($aArgs['Password']);
+                    if (!empty($password)) {
+                        $oAccount = MailModule::Decorator()->GetAccountByEmail($oUser->PublicId, $oUser->Id);
+                        if ($oAccount instanceof MailAccount) {
+                            $mSubscriptionResult['IsPasswordChanged'] = (bool) MailModule::Decorator()->ChangePassword($oAccount->Id, $oAccount->getPassword(), $password);
+                        }
+                    } else {
+                        $mSubscriptionResult['IsPasswordChanged'] = false;
                     }
-                } elseif (isset($aArgs['Password']) && trim($aArgs['Password']) === '') {
-                    $mSubscriptionResult['IsPasswordChanged'] = false;
                 }
             }
         }
@@ -1222,11 +1224,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 
         $oAccount = $aArguments['Account'];
         if ($oAccount instanceof MailAccount && $this->isDefaultAccount($oAccount)) {
-            $bSkipCurrentPasswordCheck = isset($aArguments['SkipCurrentPasswordCheck']) && $aArguments['SkipCurrentPasswordCheck'];
             $oUser = Api::getUserById($oAccount->IdUser);
             $oAuthenticatedUser = Api::getAuthenticatedUser();
-            if ($bSkipCurrentPasswordCheck || // the user resets the password
-                $oAuthenticatedUser &&
+            if ($oAuthenticatedUser &&
                 ($oAuthenticatedUser->Role === UserRole::SuperAdmin || // admin updates the user password
                 ($oUser && $oUser->IdTenant === $oAuthenticatedUser->IdTenant && $oAuthenticatedUser->Role === UserRole::TenantAdmin))) { // tenant admin updates the user password
                 $bPasswordChanged = $this->oMainManager->updateAccountPasswordWithoutCheck($oAccount->Email, $aArguments['NewPassword']);
