@@ -36,6 +36,7 @@ class AccountQuotas extends Model
     protected $primaryKey = 'id';
     protected $foreignModel = Account::class;
     protected $foreignModelIdColumn = 'name'; // Column that refers to an external table
+    protected $foreignModelPrimaryKey = 'email';
 
     public $timestamps = false;
 
