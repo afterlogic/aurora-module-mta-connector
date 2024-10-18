@@ -886,11 +886,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     public function DeleteMailingLists($IdList)
     {
         Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
-        $mResult = false;
-        foreach ($IdList as $iListId) {
-            $mResult = $this->oMailingListsManager->deleteMailingList($iListId);
-        }
-        return $mResult;
+        return $this->oMailingListsManager->deleteMailingLists($IdList);
     }
 
     /**
@@ -902,7 +898,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
-        return $this->oMailingListsManager->getMailingListMembers($Id);
+        return $this->oMailingListsManager->getMembers($Id);
     }
 
     /**
@@ -915,9 +911,12 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
-        $sListName = $this->oMailingListsManager->getMailingListEmail($ListId);
-
-        return $this->oMailingListsManager->addMember($ListId, $sListName, $ListTo);
+        $member = $this->oMailingListsManager->getMember($ListId, $ListTo);
+        if (!$member) {
+            return $this->oMailingListsManager->addMember($ListId, $ListTo);
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -997,8 +996,6 @@ class Module extends \Aurora\System\Module\AbstractModule
 
     public function onAfterCreateTables(&$aData, &$mResult)
     {
-        // $this->oMainManager->createTablesFromFile();
-
         if (Server::count() === 0) {
             $this->oMailDecorator->CreateServer(
                 'localhost',

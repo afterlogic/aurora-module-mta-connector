@@ -9,6 +9,7 @@ namespace Aurora\Modules\MtaConnector\Managers;
 
 use Aurora\Modules\MtaConnector\Models\Account;
 use Aurora\Modules\MtaConnector\Models\MailingList;
+use Aurora\Modules\MtaConnector\Models\MailingListMember;
 
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
@@ -27,10 +28,9 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
      */
     public function createMailingList($iDomainId, $sEmail)
     {
-        return !!Account::create([
+        return !!MailingList::create([
             'id_domain' => $iDomainId,
-            'email' => $sEmail,
-            'mailing_list' => true
+            'name' => $sEmail
         ]);
     }
 
@@ -41,9 +41,9 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
      */
     public function getMailingListEmail($iListId)
     {
-        $account = Account::firstWhere('id_acct', $iListId);
-        if ($account) {
-            $result = $account->email;
+        $list = MailingList::firstWhere('id', $iListId);
+        if ($list) {
+            $result = $list->name;
         }
 
         return $result;
@@ -61,17 +61,16 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
      */
     public function getMailingLists($iTenantId = 0, $iDomainId = 0, $sSearch = '', $iOffset = 0, $iLimit = 0, $bCount = false)
     {
-        $query = Account::query();
+        $query = MailingList::query();
 
         if ($iDomainId !== 0) {
-            $query = $query->where('id_domain', $iDomainId);
+            $query = $query->where('awm_mailinglists.id_domain', $iDomainId);
         }
         if ($sSearch !== '') {
-            $query = $query->where('email', 'LIKE', '%' . $sSearch . '%');
+            $query = $query->where('awm_mailinglists.name', 'LIKE', '%' . $sSearch . '%');
         }
 
-        $query = $query->leftJoin('awm_domains', 'awm_domains.id_domain', '=', 'awm_accounts.id_domain')
-            ->where('awm_accounts.mailing_list', true)
+        $query = $query->leftJoin('awm_domains', 'awm_domains.id_domain', '=', 'awm_mailinglists.id_domain')
             ->where('awm_domains.id_tenant', $iTenantId);
 
         if ($iLimit > 0) {
@@ -83,12 +82,12 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
         }
 
         $result = [];
-        $items = $query->get(['id_acct', 'email'])->all();
+        $items = $query->get(['awm_mailinglists.id', 'awm_mailinglists.name'])->all();
         foreach ($items as $item) {
             $result[] = [
-                'Id' => $item->id_acct,
-                'Name' => $item->email,
-                'Email' => $item->email
+                'Id' => $item->id,
+                'Name' => $item->name,
+                'Email' => $item->name
             ];
         }
 
@@ -109,13 +108,17 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
 
     /**
      * Deletes mailing list.
-     * @param int $iListId Mailing list identifier.
+     * @param array $ListIds Array of Mailing list identifiers.
      * @return boolean
      */
-    public function deleteMailingList($iListId)
+    public function deleteMailingLists($ListIds)
     {
-        MailingList::where('id_acct', $iListId)->delete();
-        return !!Account::where('id_acct', $iListId)->delete();
+        if (is_array($ListIds) && count($ListIds) > 0) {
+            MailingListMember::whereIn('id_mailinglist', $ListIds)->delete();
+            return !!MailingList::where('id', $ListIds)->delete();
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -123,23 +126,31 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
      * @param int $iListId Mailing list identifier.
      * @return array|boolean
      */
-    public function getMailingListMembers($iListId)
+    public function getMembers($iListId)
     {
-        return MailingList::where('id_acct', $iListId)->pluck('list_to')->toArray();
+        return MailingListMember::where('id_mailinglist', $iListId)->pluck('list_to')->toArray();
+    }
+
+    /**
+     * Obtains mailing list member.
+     * @param int $iListId Mailing list identifier.
+     * @return MailingListMember|boolean
+     */
+    public function getMember($iListId, $sListTo)
+    {
+        return MailingListMember::where('id_mailinglist', $iListId)->where('list_to', $sListTo)->first();
     }
 
     /**
      * Adds new member to mailing list.
      * @param int $iListId Mailing list identifier.
-     * @param string $sListName Email of mailing list.
      * @param string $sListTo Email of the mailbox where messages should be sent.
      * @return boolean
      */
-    public function addMember($iListId, $sListName, $sListTo)
+    public function addMember($iListId, $sListTo)
     {
-        return !!MailingList::create([
-            'id_acct' => $iListId,
-            'list_name' => $sListName,
+        return !!MailingListMember::create([
+            'id_mailinglist' => $iListId,
             'list_to' => $sListTo
         ]);
     }
@@ -152,7 +163,7 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
      */
     public function deleteMember($iListId, $sListName)
     {
-        return !!MailingList::where('id_acct', $iListId)->where('list_to', $sListName)->delete();
+        return !!MailingListMember::where('id_mailinglist', $iListId)->where('list_to', $sListName)->delete();
     }
 
     /**
@@ -162,9 +173,9 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
      */
     public function getMailingListIdByEmail($sEmail)
     {
-        $account = Account::firstWhere('email', $sEmail)->where('mailing_list', true);
-        if ($account) {
-            return $account->id_acct;
+        $list = MailingList::firstWhere('name', $sEmail);
+        if ($list) {
+            return $list->id;
         }
 
         return false;
