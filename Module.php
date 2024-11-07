@@ -1117,7 +1117,9 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         if ($mResult && isset($aArgs['UserId'])) {
             $oUser = Api::getUserById($aArgs['UserId']);
-            if ($oUser instanceof User && in_array($oUser->Role, [UserRole::SuperAdmin, $oUser->Role === UserRole::TenantAdmin])) {
+
+            $oAuthenticatedUser = Api::getAuthenticatedUser();
+            if ($oAuthenticatedUser instanceof User && in_array($oAuthenticatedUser->Role, [UserRole::TenantAdmin, UserRole::SuperAdmin]) && $oUser instanceof User) {
                 //Update quota
                 if (isset($aArgs['QuotaBytes'])) {
                     $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $aArgs['QuotaBytes']);
