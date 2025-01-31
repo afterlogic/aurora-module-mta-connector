@@ -772,7 +772,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
-        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($UserId);
+        $oUser = \Aurora\Api::getUserById($UserId);
         $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             $sDomain = preg_match('/.+@(.+)$/', $oAccount->Email, $aMatches) && $aMatches[1] ? $aMatches[1] : '';
@@ -797,7 +797,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
-        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($UserId);
+        $oUser = \Aurora\Api::getUserById($UserId);
         $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             return $this->oAliasesManager->addAlias($oAccount->Id, $AliasName, $AliasDomain, $oAccount->Email);
@@ -817,7 +817,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         Api::checkUserRoleIsAtLeast(UserRole::SuperAdmin);
 
         $mResult = false;
-        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($UserId);
+        $oUser = \Aurora\Api::getUserById($UserId);
         $oAccount = $oUser && $this->oMailDecorator ? $this->oMailDecorator->GetAccountByEmail($oUser->PublicId, $oUser->Id) : null;
         if ($oAccount) {
             foreach ($Aliases as $sAlias) {
@@ -1050,7 +1050,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
     public function onBeforeDeleteUser($aArgs, &$mResult)
     {
-        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($aArgs['UserId']);
+        $oUser = \Aurora\Api::getUserById($aArgs['UserId']);
 
         $oAuthenticatedUser = Api::getAuthenticatedUser();
         if ($oUser instanceof User && $oAuthenticatedUser->Role === UserRole::TenantAdmin && $oUser->IdTenant === $oAuthenticatedUser->IdTenant) {
@@ -1107,7 +1107,7 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         foreach ($mResult['Items'] as &$aUser) {
             if (count($aUser) > 0) {
-                $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($aUser['Id']);
+                $oUser = \Aurora\Api::getUserById($aUser['Id']);
                 $aUser['QuotaBytes'] = $oUser instanceof User ? $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes') : 0;
             }
         }
@@ -1190,7 +1190,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     protected function isDefaultAccount($oAccount)
     {
-        $oUser = CoreModule::Decorator()->GetUserWithoutRoleCheck($oAccount->IdUser);
+        $oUser = \Aurora\Api::getUserById($oAccount->IdUser);
         if ($oUser instanceof User && $oUser->PublicId === $oAccount->Email) {
             return true;
         }
