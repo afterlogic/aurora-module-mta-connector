@@ -1024,14 +1024,19 @@ class Module extends \Aurora\System\Module\AbstractModule
         }
     }
 
-    public function onAfterCreateUser(&$aData, &$mResult)
+    public function onAfterCreateUser($aArgs, &$mResult)
     {
-        $sQuotaBytes = isset($aData['QuotaBytes']) ? $aData['QuotaBytes'] : null;
+        $sQuotaBytes = isset($aArgs['QuotaBytes']) ? $aArgs['QuotaBytes'] : null;
         $oUser = Api::getUserById($mResult);
         if ($oUser instanceof User) {
             $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $sQuotaBytes);
             CoreModule::Decorator()->UpdateUserObject($oUser);
             $this->oMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER)); // bytes to Kbytes
+
+            //Set user Disable status
+            if (isset($aArgs['IsDisabled'])) {
+                $this->oMainManager->updateUserMailQuota($oUser->Id, $oUser->IsDisabled);
+            }
         }
     }
 
@@ -1138,6 +1143,10 @@ class Module extends \Aurora\System\Module\AbstractModule
                     } else {
                         $mSubscriptionResult['IsPasswordChanged'] = false;
                     }
+                }
+                //Disable user
+                if (isset($aArgs['IsDisabled'])) {
+                    $this->oMainManager->updateUserMailQuota($aArgs['UserId'], (bool) $aArgs['IsDisabled']);
                 }
             }
         }

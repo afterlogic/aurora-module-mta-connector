@@ -157,4 +157,16 @@ class Main extends \Aurora\System\Managers\AbstractManager
 
         return false;
     }
+
+    /**
+     * Set status of Account with specified email
+     *
+     * @param int $UserId
+     * @param bool $bIsDisabled
+     * @return array|bool
+     */
+    public function updateDisableStatus($UserId, $bIsDisabled)
+    {
+        return !!Account::where('id_user', (int) $UserId)->update(['deleted' => (bool) $bIsDisabled]);
+    }
 }
