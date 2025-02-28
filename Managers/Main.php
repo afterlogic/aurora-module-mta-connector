@@ -149,8 +149,7 @@ class Main extends \Aurora\System\Managers\AbstractManager
                     'AccountId' => $account->id_acct,
                     'UserId' => $account->id_user,
                     'DomainId' => $account->id_domain,
-                    'Email' => $account->email,
-                    'IsMailingList' => $account->mailing_list
+                    'Email' => $account->email
                 ];
             }
         }

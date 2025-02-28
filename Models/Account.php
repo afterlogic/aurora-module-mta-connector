@@ -15,7 +15,6 @@ use Aurora\Modules\Core\Models\User;
  * @property integer $mail_quota_kb
  * @property string $email
  * @property string $password
- * @property string $mailing_list
  *
  * @method static int count(string $columns = '*')
  * @method static \Illuminate\Database\Eloquent\Builder|Account find(int|string $id, array|string $columns = ['*'])
@@ -50,7 +49,6 @@ class Account extends Model
         'deleted',
         'mail_quota_kb',
         'email',
-        'password',
-        'mailing_list'
+        'password'
     ];
 }
