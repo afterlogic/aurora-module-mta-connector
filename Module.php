@@ -679,7 +679,7 @@ class Module extends \Aurora\System\Module\AbstractModule
             $oFetcher = $this->oFetchersManager->getFetcher($FetcherId);
             if ($oFetcher && $oFetcher->IdUser === $UserId) {
                 if ($Signature !== null) {
-                    $oFetcher->Signature = HtmlUtils::ClearHtml($Signature);
+                    $oFetcher->Signature = HtmlUtils::ClearHtmlSimple($Signature, true);
                 }
                 $oFetcher->UseSignature = $UseSignature;
                 return $this->oFetchersManager->updateFetcher($oFetcher, false);
