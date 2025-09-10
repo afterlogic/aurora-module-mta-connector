@@ -1038,7 +1038,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
             //Set user Disable status
             if (isset($aArgs['IsDisabled'])) {
-                $this->oMainManager->updateUserMailQuota($oUser->Id, $oUser->IsDisabled);
+                $this->oMainManager->updateDisableStatus($oUser->Id, $oUser->IsDisabled);
             }
         }
     }
@@ -1149,7 +1149,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 }
                 //Disable user
                 if (isset($aArgs['IsDisabled'])) {
-                    $this->oMainManager->updateUserMailQuota($aArgs['UserId'], (bool) $aArgs['IsDisabled']);
+                    $this->oMainManager->updateDisableStatus($aArgs['UserId'], (bool) $aArgs['IsDisabled']);
                 }
             }
         }
