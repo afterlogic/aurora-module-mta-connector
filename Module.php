@@ -70,6 +70,8 @@ class Module extends \Aurora\System\Module\AbstractModule
     {
         $this->subscribeEvent('Core::CreateUser::after', array($this, 'onAfterCreateUser'));
         $this->subscribeEvent('Core::UpdateUser::after', array($this, 'onAfterUpdateUser'));
+        // @TODO it's better to subscribe to Files::GetSettings, but it doens't work for what ever reason
+        $this->subscribeEvent('Core::GetAppData::after', array($this, 'onAfterGetAppData'));
 
         $this->subscribeEvent('Core::CreateTables::after', array($this, 'onAfterCreateTables'));
         $this->subscribeEvent('Core::GetUsers::after', array($this, 'onAfterGetUsers'));
@@ -1173,6 +1175,14 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $mResult['Limit'] = $iTotalQuotaBytes;
                 $mResult['Used'] = $iFileUsageBytes + $iMailQuotaUsageBytes;
             }
+        }
+    }
+
+    public function onAfterGetAppData($aArgs, &$mResult)
+    {
+        // Owerride ShowUserSpaceLimit to false, because we show combined quota (files + mail)
+        if (isset($mResult['Files']['ShowUserSpaceLimit'])) {
+            $mResult['Files']['ShowUserSpaceLimit'] = false;
         }
     }
 
