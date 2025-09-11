@@ -976,6 +976,11 @@ class Module extends \Aurora\System\Module\AbstractModule
         }
     }
 
+    /**
+     * Obtains total user quota in bytes.
+     * @param int $UserId User identifier.
+     * @return int
+     */
     public function GetUserQuota($UserId)
     {
         $iResult = 0;
@@ -1023,18 +1028,22 @@ class Module extends \Aurora\System\Module\AbstractModule
         $oUser = Api::getUserById($iUserId);
         Api::CheckAccess($aData['UserId']);
         if ($aData['Email'] === $oUser->PublicId) {
-            $this->oMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->Id, $oUser->getExtendedProp('MailDomains::DomainId'));
+            $bResult = $this->oMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->Id, $oUser->getExtendedProp('MailDomains::DomainId'));
+
+            if ($bResult) {
+                $iTotalQuotaBytes = $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
+                $iDefaultQuotaBytes = $this->oModuleSettings->UserDefaultQuotaMB * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER;
+
+                $this->updateUserQuotas($oUser->Id, $iTotalQuotaBytes ?? $iDefaultQuotaBytes);
+            }
         }
     }
 
     public function onAfterCreateUser($aArgs, &$mResult)
     {
-        $sQuotaBytes = isset($aArgs['QuotaBytes']) ? $aArgs['QuotaBytes'] : null;
         $oUser = Api::getUserById($mResult);
         if ($oUser instanceof User) {
-            $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $sQuotaBytes);
-            CoreModule::Decorator()->UpdateUserObject($oUser);
-            $this->oMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER)); // bytes to Kbytes
+            $this->updateUserQuotas($oUser->Id, $aArgs['QuotaBytes'] ?? $this->oModuleSettings->UserDefaultQuotaMB * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER);
 
             //Set user Disable status
             if (isset($aArgs['IsDisabled'])) {
@@ -1127,13 +1136,7 @@ class Module extends \Aurora\System\Module\AbstractModule
             if ($oAuthenticatedUser instanceof User && in_array($oAuthenticatedUser->Role, [UserRole::TenantAdmin, UserRole::SuperAdmin]) && $oUser instanceof User) {
                 //Update quota
                 if (isset($aArgs['QuotaBytes'])) {
-                    $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $aArgs['QuotaBytes']);
-                    CoreModule::Decorator()->UpdateUserObject($oUser);
-                    //Update mail quota
-                    $iTotalQuotaBytes =  $oUser->getExtendedProp(self::GetName() . '::TotalQuotaBytes');
-                    $iFileUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
-                    $iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
-                    $this->oMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
+                    $this->updateUserQuotas($oUser->Id, $aArgs['QuotaBytes']);
                 }
                 //Update password
                 if (isset($aArgs['Password'])) {
@@ -1168,7 +1171,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $iMailQuotaKb = (int) (($iTotalQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);//bytes to Kbytes
                 $this->oMainManager->updateUserMailQuota($aArgs['UserId'], $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
                 $mResult['Limit'] = $iTotalQuotaBytes;
-                $mResult['Used'] = $mResult['Used']  + $iMailQuotaUsageBytes;
+                $mResult['Used'] = $iFileUsageBytes + $iMailQuotaUsageBytes;
             }
         }
     }
@@ -1178,9 +1181,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         if (isset($aArgs['UserId']) && isset($aArgs['AccountID'])) {
             $oUser = Api::getUserById($aArgs['UserId']);
             $oAccount = MailModule::Decorator()->GetAccount($aArgs['AccountID']);
-            if ($oUser instanceof User &&
-                $oAccount instanceof MailAccount &&
-                $oUser->PublicId === $oAccount->Email) {
+            if ($oUser instanceof User && $oAccount instanceof MailAccount && $oUser->PublicId === $oAccount->Email) {
                 $mResult = [];
                 $iFilesQuotaUsageBytes = $oUser->getExtendedProp('PersonalFiles::UsedSpace');
                 $iMailQuotaUsageBytes = $this->oMainManager->getUserMailQuotaUsage($aArgs['UserId']);
@@ -1190,20 +1191,6 @@ class Module extends \Aurora\System\Module\AbstractModule
                 return true;
             }
         }
-    }
-
-    /**
-     * Checks if allowed to change password for account.
-     * @param \Aurora\Modules\Mail\Models\MailAccount $oAccount
-     * @return bool
-     */
-    protected function isDefaultAccount($oAccount)
-    {
-        $oUser = \Aurora\Api::getUserById($oAccount->IdUser);
-        if ($oUser instanceof User && $oUser->PublicId === $oAccount->Email) {
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -1310,5 +1297,41 @@ class Module extends \Aurora\System\Module\AbstractModule
         }
 
         return true; // break subscriptions to prevent account creation in other modules
+    }
+
+    /**
+     * Checks if allowed to change password for account.
+     * @param \Aurora\Modules\Mail\Models\MailAccount $oAccount
+     * @return bool
+     */
+    protected function isDefaultAccount($oAccount)
+    {
+        $oUser = \Aurora\Api::getUserById($oAccount->IdUser);
+        if ($oUser instanceof User && $oUser->PublicId === $oAccount->Email) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Updates user quotas both in users extended props and in MTA account table.
+     *
+     * @param int $iUserId User identifier.
+     * @param int $iQuotaBytes New quota value in bytes.
+     */
+    protected function updateUserQuotas($iUserId, $iQuotaBytes)
+    {
+        $oUser = Api::getUserById($iUserId);
+
+        if ($oUser instanceof User) {
+            //Update quota in user extended props
+            $oUser->setExtendedProp(self::GetName() . '::TotalQuotaBytes', $iQuotaBytes);
+            CoreModule::Decorator()->UpdateUserObject($oUser);
+
+            //Update mail quota in MTA accaunt table
+            $iFileUsageBytes = (int) $oUser->getExtendedProp('PersonalFiles::UsedSpace');
+            $iMailQuotaKb = (int) (($iQuotaBytes - $iFileUsageBytes) / self::QUOTA_KILO_MULTIPLIER);
+            $this->oMainManager->updateUserMailQuota($iUserId, $iMailQuotaKb > 0 ? $iMailQuotaKb : 0);
+        }
     }
 }
