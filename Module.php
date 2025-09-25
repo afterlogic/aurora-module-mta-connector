@@ -1030,6 +1030,26 @@ class Module extends \Aurora\System\Module\AbstractModule
         $oUser = Api::getUserById($iUserId);
         Api::CheckAccess($aData['UserId']);
         if ($aData['Email'] === $oUser->PublicId) {
+
+            $bExists = false;
+            //check if mailbox exists
+            $sScript = '/opt/afterlogic/scripts/webshell-maildir-exists.sh';
+            if (file_exists($sScript)) {
+                $sEmail = \Aurora\System\Utils::GetAccountNameFromEmail($aData['Email']);
+                $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($aData['Email']);
+                $sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
+
+                Api::Log('check maildir exists / exec: ' . $sCmd, \Aurora\System\Enums\LogLevel::Full);
+                $shell_exec_result = shell_exec($sCmd);
+                if (!empty($shell_exec_result)) {
+                    $bExists = trim($shell_exec_result) === 'EXISTS';
+                }
+            }
+
+            if ($bExists) {
+                throw new \Aurora\System\Exceptions\ApiException(\Aurora\System\Notifications::UserAlreadyExists);
+            }
+
             $bResult = $this->oMainManager->createAccount($aData['Email'], $aData['IncomingPassword'], $oUser->Id, $oUser->getExtendedProp('MailDomains::DomainId'));
 
             if ($bResult) {
