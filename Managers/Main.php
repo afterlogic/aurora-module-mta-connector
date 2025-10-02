@@ -21,9 +21,8 @@ class Main extends \Aurora\System\Managers\AbstractManager
 {
     public function createAccount($sEmail, $sPassword, $iUserId, $iDomainId)
     {
-        $sEmail = \MailSo\Base\Utils::idn()->encode($sEmail);
-
         if (!empty($sEmail) && !empty($sPassword)) {
+            $sEmail = \MailSo\Base\Utils::idn()->encodeEmail($sEmail);
             return !!Account::create([
                 'email' => $sEmail,
                 'password' => self::EncodePassword($sPassword),
@@ -37,9 +36,8 @@ class Main extends \Aurora\System\Managers\AbstractManager
 
     public function updateAccountPassword($sEmail, $sPassword, $sNewPassword)
     {
-        $sEmail = \MailSo\Base\Utils::idn()->encode($sEmail);
-
         if (!empty($sEmail) && !empty($sPassword) && !empty($sNewPassword)) {
+            $sEmail = \MailSo\Base\Utils::idn()->encodeEmail($sEmail);
             $sNewPassword = self::EncodePassword($sNewPassword);
             return !!Account::where('email', $sEmail)
                 ->whereRaw('CONCAT(SHA2(CONCAT(?, UNHEX(SUBSTR(password, -16))), 256), SUBSTR(password, -16)) = password', [$sPassword])
@@ -54,7 +52,7 @@ class Main extends \Aurora\System\Managers\AbstractManager
     public function updateAccountPasswordWithoutCheck($sEmail, $sNewPassword)
     {
         if (!empty($sEmail) && !empty($sNewPassword)) {
-            $sEmail = \MailSo\Base\Utils::idn()->encode($sEmail);
+            $sEmail = \MailSo\Base\Utils::idn()->encodeEmail($sEmail);
             $sNewPassword = self::EncodePassword($sNewPassword);
 
             return !!Account::where('email', $sEmail)->update([
@@ -140,7 +138,7 @@ class Main extends \Aurora\System\Managers\AbstractManager
      */
     public function getAccountByEmail($sAccountEmail)
     {
-        $sAccountEmail = \MailSo\Base\Utils::idn()->encode(trim($sAccountEmail));
+        $sAccountEmail = \MailSo\Base\Utils::idn()->encodeEmail(trim($sAccountEmail));
 
         if (!empty($sAccountEmail)) {
             $account = Account::firstWhere('email', $sAccountEmail);
