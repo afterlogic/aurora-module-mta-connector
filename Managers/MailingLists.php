@@ -67,6 +67,7 @@ class MailingLists extends \Aurora\System\Managers\AbstractManager
             $query = $query->where('id_domain', $iDomainId);
         }
         if ($sSearch !== '') {
+            $sSearch = str_replace(['%', '_'], ['\%', '\_'], $sSearch);
             $query = $query->where('email', 'LIKE', '%' . $sSearch . '%');
         }
 
