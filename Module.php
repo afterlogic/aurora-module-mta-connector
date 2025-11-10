@@ -114,7 +114,8 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $oSettings->DBName,
                 '',
                 $oSettings->DBLogin,
-                $oSettings->DBPassword
+                $oSettings->DBPassword,
+                $oSettings->DBEngine
             );
 
             $container = Api::GetContainer();
