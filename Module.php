@@ -1042,9 +1042,15 @@ class Module extends \Aurora\System\Module\AbstractModule
 
                 Api::Log('check maildir exists / exec: ' . $sCmd, \Aurora\System\Enums\LogLevel::Full);
                 $shell_exec_result = shell_exec($sCmd);
-                if (!empty($shell_exec_result)) {
+
+                if (null === $shell_exec_result || false === $shell_exec_result || empty($shell_exec_result)) {
+                    Api::Log('check maildir exists / exec: ' . $sCmd . " failed", \Aurora\System\Enums\LogLevel::Full);
+                } else {
                     $bExists = trim($shell_exec_result) === 'EXISTS';
                 }
+
+            } else {
+                Api::Log('check maildir exists / exec: ' . $sScript . " failed: script does not exist", \Aurora\System\Enums\LogLevel::Full);
             }
 
             if ($bExists) {
