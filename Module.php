@@ -1038,7 +1038,7 @@ class Module extends \Aurora\System\Module\AbstractModule
             if (file_exists($sScript)) {
                 $sEmail = \Aurora\System\Utils::GetAccountNameFromEmail($aData['Email']);
                 $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($aData['Email']);
-                $sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
+                $sCmd = $sScript . ' ' . escapeshellarg($sDomain) . ' ' . escapeshellarg($sEmail);
 
                 Api::Log('check maildir exists / exec: ' . $sCmd, \Aurora\System\Enums\LogLevel::Full);
                 $shell_exec_result = shell_exec($sCmd);
@@ -1118,7 +1118,7 @@ class Module extends \Aurora\System\Module\AbstractModule
             if (file_exists($sScript)) {
                 $sEmail = \Aurora\System\Utils::GetAccountNameFromEmail($sUserPublicId);
                 $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($sUserPublicId);
-                $sCmd = $sScript . ' ' . $sDomain . ' ' . $sEmail;
+                $sCmd = $sScript . ' ' . escapeshellarg($sDomain) . ' ' . escapeshellarg($sEmail);
 
                 Api::Log('deleteMailDir / exec: ' . $sCmd, \Aurora\System\Enums\LogLevel::Full);
                 $shell_exec_result = shell_exec($sCmd);
@@ -1294,43 +1294,46 @@ class Module extends \Aurora\System\Module\AbstractModule
             $sFriendlyName = isset($aArgs['Name']) ? trim($aArgs['Name']) : '';
             $bSignMe = isset($aArgs['SignMe']) ? (bool) $aArgs['SignMe'] : false;
             $bPrevState = Api::skipCheckUserRole(true);
-            $iUserId = CoreModule::Decorator()->CreateUser(0, $sLogin);
-            $oUser = Api::getUserById((int) $iUserId);
-            if ($oUser instanceof User) {
-                $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($oUser->PublicId);
-                $oDomain = $this->oMailDomainsDecorator->getDomainsManager()->getDomainByName($sDomain, 0);
-                if ($oDomain) {
-                    $sQuotaBytes = (int) $this->oModuleSettings->UserDefaultQuotaMB * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER; //Mbytes to bytes
-                    $oUser->setExtendedProp($this->GetName() . '::TotalQuotaBytes', $sQuotaBytes);
-                    CoreModule::Decorator()->UpdateUserObject($oUser);
+            try {
+                $iUserId = CoreModule::Decorator()->CreateUser(0, $sLogin);
+                $oUser = Api::getUserById((int) $iUserId);
+                if ($oUser instanceof User) {
+                    $sDomain = \MailSo\Base\Utils::GetDomainFromEmail($oUser->PublicId);
+                    $oDomain = $this->oMailDomainsDecorator->getDomainsManager()->getDomainByName($sDomain, 0);
+                    if ($oDomain) {
+                        $sQuotaBytes = (int) $this->oModuleSettings->UserDefaultQuotaMB * self::QUOTA_KILO_MULTIPLIER * self::QUOTA_KILO_MULTIPLIER; //Mbytes to bytes
+                        $oUser->setExtendedProp($this->GetName() . '::TotalQuotaBytes', $sQuotaBytes);
+                        CoreModule::Decorator()->UpdateUserObject($oUser);
 
-                    try {
-                        $bPrevState = Api::skipCheckUserRole(true);
-                        $oAccount = MailModule::Decorator()->CreateAccount($oUser->Id, $sFriendlyName, $sLogin, $sLogin, $sPassword);
-                        Api::skipCheckUserRole($bPrevState);
-                        if ($oAccount instanceof MailAccount) {
-                            $this->oMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
-                            $bResult = true;
-                            $iTime = $bSignMe ? 0 : time();
-                            $sAuthToken = Api::UserSession()->Set(
-                                \Aurora\System\UserSession::getTokenData($oAccount, $bSignMe),
-                                $iTime
-                            );
-                            $mResult = ['AuthToken' => $sAuthToken];
+                        try {
+                            $oAccount = MailModule::Decorator()->CreateAccount($oUser->Id, $sFriendlyName, $sLogin, $sLogin, $sPassword);
+                            if ($oAccount instanceof MailAccount) {
+                                $this->oMainManager->updateUserMailQuota($oUser->Id, (int) ($sQuotaBytes / self::QUOTA_KILO_MULTIPLIER));//bytes to Kbytes
+                                $bResult = true;
+                                $iTime = $bSignMe ? 0 : time();
+                                $sAuthToken = Api::UserSession()->Set(
+                                    \Aurora\System\UserSession::getTokenData($oAccount, $bSignMe),
+                                    $iTime
+                                );
+                                $mResult = ['AuthToken' => $sAuthToken];
+                            }
+                        } catch (\Exception $oException) {
+                            if ($oException instanceof \Aurora\Modules\Mail\Exceptions\Exception &&
+                                $oException->getCode() === \Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect) {
+                                CoreModule::Decorator()->DeleteUser($oUser->Id);
+                            }
+                            throw $oException;
                         }
-                    } catch (\Exception $oException) {
-                        if ($oException instanceof \Aurora\Modules\Mail\Exceptions\Exception &&
-                            $oException->getCode() === \Aurora\Modules\Mail\Enums\ErrorCodes::CannotLoginCredentialsIncorrect) {
-                            CoreModule::Decorator()->DeleteUser($oUser->Id);
-                        }
-                        throw $oException;
                     }
                 }
+                if (!$bResult) {//If Account wasn't created - delete user
+                    if ($oUser instanceof User) {
+                        CoreModule::Decorator()->DeleteUser($oUser->Id);
+                    }
+                }
+            } finally {
+                Api::skipCheckUserRole($bPrevState);
             }
-            if (!$bResult) {//If Account wasn't created - delete user
-                CoreModule::Decorator()->DeleteUser($oUser->Id);
-            }
-            Api::skipCheckUserRole($bPrevState);
         }
 
         return true; // break subscriptions to prevent account creation in other modules
